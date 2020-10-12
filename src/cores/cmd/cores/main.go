@@ -36,7 +36,7 @@ func closeBounty() {
 	for {
 		select {
 		case <-t.C:
-			if err := bountymodels.Bounties.ClosedBounty(context.Background()); err != nil {
+			if err := bountymodels.Bounties.BatchClosedBounty(context.Background()); err != nil {
 				log.Warn(err)
 			}
 		}

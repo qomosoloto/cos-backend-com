@@ -187,6 +187,19 @@ func (h *BountiesHandler) Create(startupId flake.ID) (res interface{}) {
 	return
 }
 
+func (h *BountiesHandler) Closed(bountyId flake.ID) (res interface{}) {
+	var uid flake.ID
+	h.Ctx.Find(&uid, "uid")
+	if err := bountymodels.Bounties.ClosedBounty(h.Ctx, bountyId, uid); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.Ret(http.StatusOK)
+	return
+}
+
 func (h *BountiesHandler) StartWork(bountyId flake.ID) (res interface{}) {
 	var input cores.CreateUndertakeBountyInput
 	if err := h.Params.BindJsonBody(&input); err != nil {

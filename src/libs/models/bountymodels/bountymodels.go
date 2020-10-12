@@ -280,7 +280,7 @@ func (c *bounties) UpdateUndertakeBounty(ctx context.Context, input *coresSdk.Up
 	})
 }
 
-func (c *bounties) ClosedBounty(ctx context.Context) (err error) {
+func (c *bounties) BatchClosedBounty(ctx context.Context) (err error) {
 	stmt := `
 		UPDATE bounties SET status = ${statusClosed}, is_closed = true
 		WHERE status != ${statusClosed} AND expired_at<current_timestamp;
@@ -288,6 +288,24 @@ func (c *bounties) ClosedBounty(ctx context.Context) (err error) {
 
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
 		"{statusClosed}": coresSdk.BountyStatusClosed,
+	})
+
+	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
+		_, er = db.ExecContext(ctx, query, args...)
+		return
+	})
+}
+
+func (c *bounties) ClosedBounty(ctx context.Context, id, uid flake.ID) (err error) {
+	stmt := `
+		UPDATE bounties SET status = ${statusClosed}, is_closed = true
+		WHERE id = ${id} AND user_id = ${userId} AND status!=${statusClosed};
+	`
+
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{statusClosed}": coresSdk.BountyStatusClosed,
+		"{id}":           id,
+		"{userId}":       uid,
 	})
 
 	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
