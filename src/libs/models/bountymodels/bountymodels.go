@@ -143,7 +143,7 @@ func (c *bounties) Query(ctx context.Context, uid flake.ID, isOwner bool, m inte
 			t.state transaction_state,
 			json_build_object('id',s.id,'name',s.name ,'logo' ,sr.logo) startup,
 			json_build_object('id',b.user_id,'name',coalesce(h.name,u.public_key),'is_hunter',CASE WHEN h.name IS NOT NULL THEN TRUE ELSE FALSE END) created_by,
-			(CASE WHEN status !=2 THEN 0 ELSE status END) order_status
+			(CASE WHEN b.status !=2 THEN 0 ELSE b.status END) order_status
 		` + filterSql + `
         ` + joinCondition + `
 		WHERE 1=1
