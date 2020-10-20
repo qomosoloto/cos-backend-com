@@ -1,0 +1,1 @@
+ALTER TABLE comunion.bounties_hunters_rel ADD rejected_at timestamp with time zone

@@ -81,7 +81,7 @@ func (c *bounties) ListBounties(ctx context.Context, startupId, uid flake.ID, is
 		plan.AddCond(`AND b.startup_id = ${startupId}`)
 	}
 
-	plan.OrderBySql = ` ORDER BY is_open ASC,created_at DESC`
+	plan.OrderBySql = ` ORDER BY is_closed ASC, created_at DESC`
 	plan.LimitSql = ` LIMIT ${limit} OFFSET ${offset}`
 
 	plan.Params = map[string]interface{}{
@@ -117,6 +117,7 @@ func (c *bounties) Query(ctx context.Context, uid flake.ID, isOwner bool, m inte
 	}
 
 	plan.Params["{source}"] = ethSdk.TransactionSourceBounty
+	plan.Params["{undertakeBountySource}"] = ethSdk.TransactionSourceUndertakeBounty
 
 	if plan.RetTotal {
 		query :=
@@ -137,19 +138,25 @@ func (c *bounties) Query(ctx context.Context, uid flake.ID, isOwner bool, m inte
 
 	query := `
 	WITH bounties_cte AS (
-		SELECT b.*, t.block_addr, t.state transaction_state, current_timestamp<b.expired_at is_open,json_build_object('id',s.id,'name',s.name ,'logo' ,sr.logo) startup, json_build_object('id',b.user_id,'name',coalesce(h.name,u.public_key),'is_hunter',CASE WHEN h.name IS NOT NULL THEN TRUE ELSE FALSE END) created_by
+		SELECT b.*,
+			t.block_addr,
+			t.state transaction_state,
+			json_build_object('id',s.id,'name',s.name ,'logo' ,sr.logo) startup,
+			json_build_object('id',b.user_id,'name',coalesce(h.name,u.public_key),'is_hunter',CASE WHEN h.name IS NOT NULL THEN TRUE ELSE FALSE END) created_by,
+			(CASE WHEN b.status !=2 THEN 0 ELSE b.status END) order_status
 		` + filterSql + `
         ` + joinCondition + `
-		WHERE 1=1 
+		WHERE 1=1
 		` + plan.Conditions + `
 		` + plan.OrderBySql + `
 		` + plan.LimitSql + `
 	),bounty_hunter_rels_cte AS (
-		SELECT bhr.bounty_id,h.id hunter_id, bhr.uid as user_id, bhr.status, bhr.started_at, bhr.submitted_at, bhr.quited_at, bhr.paid_at, bhr.paid_tokens,COALESCE(h.name, u.public_key) AS name
+		SELECT bhr.bounty_id, bhr.uid as user_id, bhr.status, bhr.started_at, bhr.submitted_at, bhr.quited_at, bhr.rejected_at, bhr.paid_at, bhr.paid_tokens,COALESCE(h.name, u.public_key) AS name, t.state transaction_state
 		FROM bounties_cte bc
 		LEFT JOIN bounties_hunters_rel bhr ON bhr.bounty_id = bc.id
 		LEFT JOIN users u ON bhr.uid = u.id
 		LEFT JOIN hunters h ON u.id = h.user_id
+		LEFT JOIN transactions t ON t.source_id = bhr.id AND t.source = ${undertakeBountySource}
 	),bounty_hunter_rels_aggregate_cte AS (
 		SELECT bhrc.bounty_id, COALESCE(json_agg(bhrc), '[]'::json) hunters
 		FROM bounty_hunter_rels_cte bhrc
@@ -157,7 +164,8 @@ func (c *bounties) Query(ctx context.Context, uid flake.ID, isOwner bool, m inte
 	),res AS (
 	    SELECT bc.*, COALESCE(bhrac.hunters, '[]'::json) hunters
 	    FROM bounties_cte bc
-	    LEFT JOIN bounty_hunter_rels_aggregate_cte bhrac ON bc.id = bhrac.bounty_id
+		LEFT JOIN bounty_hunter_rels_aggregate_cte bhrac ON bc.id = bhrac.bounty_id
+		` + plan.OrderBySql + `
 	)
 	SELECT
 		COALESCE(json_agg(r.*), '[]'::json)
@@ -191,14 +199,13 @@ func (c *bounties) GetBounty(ctx context.Context, id flake.ID, isOwner bool, out
 
 func (c *bounties) CreateUndertakeBounty(ctx context.Context, input *coresSdk.CreateUndertakeBountyInput, output *coresSdk.UndertakeBountyResult) (err error) {
 	stmt := `
-		INSERT INTO bounties_hunters_rel(bounty_id, uid, status, started_at)
-		VALUES (${bountyId}, ${uid}, ${status}, ${startedAt}) RETURNING id, bounty_id, status;
+		INSERT INTO bounties_hunters_rel(bounty_id, uid, status)
+		VALUES (${bountyId}, ${uid}, ${status}) RETURNING id, bounty_id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
-		"{bountyId}":  input.BountyId,
-		"{uid}":       input.UserId,
-		"{status}":    coresSdk.UndertakeBountyStatusNull,
-		"{startedAt}": time.Now(),
+		"{bountyId}": input.BountyId,
+		"{uid}":      input.UserId,
+		"{status}":   coresSdk.UndertakeBountyStatusNull,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
@@ -231,6 +238,11 @@ func (c *bounties) PaidUndertakeBounty(ctx context.Context, input *coresSdk.Upda
 	return c.UpdateUndertakeBounty(ctx, input, output)
 }
 
+func (c *bounties) RejectedUndertakeBounty(ctx context.Context, input *coresSdk.UpdateUndertakeBountyInput, output *coresSdk.UndertakeBountyResult) (err error) {
+	input.Status = coresSdk.UndertakeBountyStatusRejected
+	return c.UpdateUndertakeBounty(ctx, input, output)
+}
+
 func (c *bounties) UpdateUndertakeBounty(ctx context.Context, input *coresSdk.UpdateUndertakeBountyInput, output *coresSdk.UndertakeBountyResult) (err error) {
 	fields := ""
 	values := ""
@@ -242,6 +254,9 @@ func (c *bounties) UpdateUndertakeBounty(ctx context.Context, input *coresSdk.Up
 		values += "${status}, current_timestamp, current_timestamp"
 	} else if input.Status == coresSdk.UndertakeBountyStatusPaid {
 		fields += "status, paid_at, updated_at"
+		values += "${status}, current_timestamp, current_timestamp"
+	} else if input.Status == coresSdk.UndertakeBountyStatusRejected {
+		fields += "status, rejected_at, updated_at"
 		values += "${status}, current_timestamp, current_timestamp"
 	}
 
@@ -262,5 +277,39 @@ func (c *bounties) UpdateUndertakeBounty(ctx context.Context, input *coresSdk.Up
 
 	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
 		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
+func (c *bounties) BatchClosedBounty(ctx context.Context) (err error) {
+	stmt := `
+		UPDATE bounties SET status = ${statusClosed}, is_closed = true
+		WHERE status != ${statusClosed} AND expired_at<current_timestamp;
+	`
+
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{statusClosed}": coresSdk.BountyStatusClosed,
+	})
+
+	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
+		_, er = db.ExecContext(ctx, query, args...)
+		return
+	})
+}
+
+func (c *bounties) ClosedBounty(ctx context.Context, id, uid flake.ID) (err error) {
+	stmt := `
+		UPDATE bounties SET status = ${statusClosed}, is_closed = true
+		WHERE id = ${id} AND user_id = ${userId} AND status!=${statusClosed};
+	`
+
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{statusClosed}": coresSdk.BountyStatusClosed,
+		"{id}":           id,
+		"{userId}":       uid,
+	})
+
+	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
+		_, er = db.ExecContext(ctx, query, args...)
+		return
 	})
 }

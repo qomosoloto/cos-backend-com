@@ -40,6 +40,7 @@ const (
 	UndertakeBountyStatusSubmitted BountyHunterRelStatus = iota
 	UndertakeBountyStatusPaid      BountyHunterRelStatus = iota
 	UndertakeBountyStatusQuited    BountyHunterRelStatus = iota
+	UndertakeBountyStatusRejected  BountyHunterRelStatus = iota
 )
 
 type CreateBountyInput struct {
@@ -60,8 +61,9 @@ type CreateBountyInput struct {
 }
 
 type BountyOutput struct {
-	Id      flake.ID `json:"id" db:"id"`
-	Startup struct {
+	Id       flake.ID `json:"id" db:"id"`
+	SerialNo int      `json:"serialNo" db:"serial_no"`
+	Startup  struct {
 		Id   flake.ID `json:"id" db:"id"`
 		Name string   `json:"name" db:"name"`
 		Logo string   `json:"logo" db:"logo"`
@@ -81,15 +83,16 @@ type BountyOutput struct {
 	Duration            int            `json:"duration" db:"duration"`
 	Payments            types.JSONText `json:"payments" db:"payments"`
 	Hunters             []struct {
-		UserId      flake.ID              `json:"userId" db:"user_id"`
-		HunterId    flake.ID              `json:"hunterId" db:"hunter_id"`       // hunter_id
-		Name        string                `json:"name" db:"name"`                // name
-		Status      BountyHunterRelStatus `json:"status" db:"status"`            // status
-		StartedAt   *time.Time            `json:"startedAt" db:"started_at"`     // started_at
-		SubmittedAt *time.Time            `json:"submittedAt" db:"submitted_at"` // submitted_at
-		QuitedAt    *time.Time            `json:"quitedAt" db:"quited_at"`       // quited_at
-		PaidAt      *time.Time            `json:"paidAt" db:"paid_at"`           // paid_at
-		PaidTokens  types.JSONText        `json:"paidTokens" db:"paid_tokens"`   // paid_tokens
+		UserId           flake.ID              `json:"userId" db:"user_id"`
+		Name             string                `json:"name" db:"name"`                // name
+		Status           BountyHunterRelStatus `json:"status" db:"status"`            // status
+		StartedAt        *time.Time            `json:"startedAt" db:"started_at"`     // started_at
+		SubmittedAt      *time.Time            `json:"submittedAt" db:"submitted_at"` // submitted_at
+		QuitedAt         *time.Time            `json:"quitedAt" db:"quited_at"`       // quited_at
+		PaidAt           *time.Time            `json:"paidAt" db:"paid_at"`           // paid_at
+		RejectedAt       *time.Time            `json:"rejectedAt" db:"rejected_at"`   // rejected_at
+		PaidTokens       types.JSONText        `json:"paidTokens" db:"paid_tokens"`   // paid_tokens
+		TransactionState eth.TransactionState  `json:"transactionState" db:"transaction_state"`
 	} `json:"hunters" db:"hunters"`
 	Status           BountyStatus         `json:"status" db:"status"`
 	CreatedAt        time.Time            `json:"createdAt" db:"created_at"`

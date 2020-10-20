@@ -6,6 +6,7 @@ import (
 	"cos-backend-com/src/common/flake"
 	"cos-backend-com/src/common/util"
 	"cos-backend-com/src/libs/models"
+	"cos-backend-com/src/libs/sdk/cores"
 	ethSdk "cos-backend-com/src/libs/sdk/eth"
 
 	"github.com/jmoiron/sqlx"
@@ -42,8 +43,8 @@ func (c *transactions) Create(ctx context.Context, input *ethSdk.CreateTransacti
 	stmt := `
 		INSERT INTO transactions(tx_id, source, source_id)
 		VALUES (${txId}, ${source}, ${sourceId})
-		ON CONFLICT(tx_id) WHERE state !=3 
-		DO UPDATE SET 
+		ON CONFLICT(tx_id) WHERE state !=3
+		DO UPDATE SET
 		(
 		    state, retry_time, source_id, updated_at
 		)= (
@@ -99,6 +100,10 @@ func (c *transactions) UpdateWithConfirmSource(ctx context.Context, id, sourceId
 			if er = c.ConfirmStartupSetting(newCtx, sourceId); er != nil {
 				return er
 			}
+		case ethSdk.TransactionSourceUndertakeBounty:
+			if er = c.ConfirmUndertakeBounty(newCtx, sourceId); er != nil {
+				return er
+			}
 		}
 		return
 	})
@@ -134,6 +139,33 @@ func (c *transactions) ConfirmStartupSetting(ctx context.Context, id flake.ID) (
 
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
 		"{id}": id,
+	})
+
+	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
+		_, er = db.ExecContext(ctx, query, args...)
+		return er
+	})
+}
+
+func (c *transactions) ConfirmUndertakeBounty(ctx context.Context, id flake.ID) (err error) {
+	stmt := `
+	WITH update_bounties_hunter_rel_cte AS (
+		UPDATE bounties_hunters_rel
+			SET status = ${undertakeBountyStatusStartWork},
+				started_at = current_timestamp
+			WHERE id = ${sourceId}
+			RETURNING bounty_id
+	)
+	UPDATE bounties
+	SET status = ${bountyStatusInProgress}
+	WHERE id = (SELECT bounty_id FROM update_bounties_hunter_rel_cte)
+		AND status = 0;
+	`
+
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{undertakeBountyStatusStartWork}": cores.UndertakeBountyStatusStartWork,
+		"{bountyStatusInProgress}":         cores.BountyStatusInProgress,
+		"{sourceId}":                       id,
 	})
 
 	return c.Invoke(ctx, func(db dbconn.Q) (er error) {

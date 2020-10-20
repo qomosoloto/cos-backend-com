@@ -98,5 +98,5 @@ func HandleError(err error) *apires.ResError {
 		panic("err cannot be nil")
 	}
 
-	return ErrServerError.WithData(nil, err.Error())
+	return ErrServerError
 }

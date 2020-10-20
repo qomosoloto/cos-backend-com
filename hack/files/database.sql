@@ -127,7 +127,9 @@ CREATE TABLE comunion.bounties (
     payments jsonb DEFAULT '[]'::jsonb NOT NULL,
     status integer DEFAULT 0 NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    is_closed boolean DEFAULT false,
+    serial_no integer NOT NULL
 );
 
 
@@ -146,8 +148,29 @@ CREATE TABLE comunion.bounties_hunters_rel (
     paid_at timestamp with time zone,
     paid_tokens jsonb DEFAULT '[]'::jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    rejected_at timestamp with time zone
 );
+
+
+--
+-- Name: bounties_serial_no_seq; Type: SEQUENCE; Schema: comunion; Owner: -
+--
+
+CREATE SEQUENCE comunion.bounties_serial_no_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bounties_serial_no_seq; Type: SEQUENCE OWNED BY; Schema: comunion; Owner: -
+--
+
+ALTER SEQUENCE comunion.bounties_serial_no_seq OWNED BY comunion.bounties.serial_no;
 
 
 --
@@ -350,6 +373,13 @@ CREATE TABLE comunion.users (
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     is_hunter boolean DEFAULT false NOT NULL
 );
+
+
+--
+-- Name: bounties serial_no; Type: DEFAULT; Schema: comunion; Owner: -
+--
+
+ALTER TABLE ONLY comunion.bounties ALTER COLUMN serial_no SET DEFAULT nextval('comunion.bounties_serial_no_seq'::regclass);
 
 
 --
