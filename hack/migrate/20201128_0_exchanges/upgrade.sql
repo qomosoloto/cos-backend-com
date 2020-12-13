@@ -28,6 +28,8 @@ CREATE TABLE exchanges (
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+COMMENT ON COLUMN comunion.exchanges.status IS '0 待确认，1 已确认，2 未确认到';
+
 CREATE UNIQUE INDEX exchanges_startup_id ON comunion.exchanges USING btree (startup_id);
 CREATE UNIQUE INDEX exchanges_pair_address ON comunion.exchanges USING btree (pair_address);
 
@@ -35,8 +37,8 @@ CREATE TABLE exchange_transactions (
     id bigint DEFAULT comunion.id_generator() NOT NULL
         CONSTRAINT exchange_transactions_id_pk
             PRIMARY KEY,
-    exchange_id bigint NOT NULL,
     tx_id text NOT NULL,
+    exchange_id bigint NOT NULL,
     account text NOT NULL,
     type integer NOT NULL,
     name text NOT NULL,
@@ -49,3 +51,6 @@ CREATE TABLE exchange_transactions (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+COMMENT ON COLUMN comunion.exchange_transactions.type IS '1 增加流动性，2 删除流动性，3 兑换';
+COMMENT ON COLUMN comunion.exchange_transactions.status IS '0 待确认，1 已确认，2 未确认到';
