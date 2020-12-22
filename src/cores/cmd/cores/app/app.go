@@ -126,7 +126,7 @@ func (p *appConfig) ConfigRoutes() {
 					s.Get(startups.StartUpsHandler{}).Action("GetPayTokens"),
 				),
 				s.Router("/exchange",
-					s.Get(exchanges.ExchangesHandler{}).Action("CreateExchange"),
+					s.Post(exchanges.ExchangesHandler{}).Action("CreateExchange"),
 				),
 			),
 			//restore startup
