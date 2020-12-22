@@ -125,9 +125,6 @@ func (p *appConfig) ConfigRoutes() {
 				s.Router("/payTokens",
 					s.Get(startups.StartUpsHandler{}).Action("GetPayTokens"),
 				),
-				s.Router("/exchange",
-					s.Post(exchanges.ExchangesHandler{}).Action("CreateExchange"),
-				),
 			),
 			//restore startup
 			s.Router("/:id:restore",
@@ -141,6 +138,9 @@ func (p *appConfig) ConfigRoutes() {
 			s.Router("/:id/follows",
 				s.Post(follows.FollowsHandler{}).Action("Create"),
 				s.Delete(follows.FollowsHandler{}).Action("Delete"),
+			),
+			s.Router("/:id/exchange",
+				s.Post(exchanges.ExchangesHandler{}).Action("CreateExchange"),
 			),
 		),
 
