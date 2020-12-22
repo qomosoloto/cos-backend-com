@@ -7,6 +7,7 @@ import (
 	"cos-backend-com/src/cores"
 	"cos-backend-com/src/cores/routers/bounties"
 	"cos-backend-com/src/cores/routers/categories"
+	"cos-backend-com/src/cores/routers/exchanges"
 	"cos-backend-com/src/cores/routers/files"
 	"cos-backend-com/src/cores/routers/follows"
 	"cos-backend-com/src/cores/routers/startups"
@@ -123,6 +124,9 @@ func (p *appConfig) ConfigRoutes() {
 				),
 				s.Router("/payTokens",
 					s.Get(startups.StartUpsHandler{}).Action("GetPayTokens"),
+				),
+				s.Router("/exchange",
+					s.Get(exchanges.ExchangesHandler{}).Action("CreateExchange"),
 				),
 			),
 			//restore startup
