@@ -52,12 +52,21 @@ func (c *exchanges) CreateExchange(ctx context.Context, input *coresSdk.CreateEx
 }
 
 func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchangeInput, output *coresSdk.ExchangeResult) (err error) {
+	where := ""
+	if input.Id != 0 {
+		where += `ex.id = ${id}`
+	} else if input.StartupId != 0 {
+		where += `ex.startup_id = ${startupId}`
+	} else {
+		where += "1 = 2"
+	}
 	stmt := `
 	WITH res AS (
 	    SELECT 
 			ex.id,
 			ex.tx_id,
-			(s.id, sr.name, sr.logo, ssr.token_name, ssr.token_symbol, sr.mission) as startup,
+			json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'mission',sr.mission,'token_name',ssr.token_name,
+							  'token_symbol',ssr.token_symbol) startup,
 			ex.pair_name,
 			ex.pair_address,
 			ex.status
@@ -66,12 +75,13 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 			INNER JOIN startup_settings ss ON s.id = ss.startup_id
 			INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-	    WHERE ex.id = ${id}
+	    WHERE ` + where + `
 	)
 	SELECT row_to_json(res.*) FROM res
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
-		"{id}": input.Id,
+		"{id}":        input.Id,
+		"{startupId}": input.StartupId,
 	})
 
 	return c.Invoke(ctx, func(db dbconn.Q) (er error) {

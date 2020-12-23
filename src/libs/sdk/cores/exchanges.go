@@ -43,7 +43,7 @@ type ExchangeResult struct {
 		Logo        string   `json:"logo" db:"logo"`
 		TokenName   string   `json:"tokenName" db:"token_name"`
 		TokenSymbol string   `json:"tokenSymbol" db:"token_symbol"`
-		Description string   `json:"description" db:"description"`
+		Mission     string   `json:"mission" db:"mission"`
 	} `json:"startup" db:"startup"`
 	PairName    string         `json:"pairName" db:"pair_name"`
 	PairAddress string         `json:"pairAddress" db:"pair_address"`

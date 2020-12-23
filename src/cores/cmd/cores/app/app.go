@@ -141,6 +141,7 @@ func (p *appConfig) ConfigRoutes() {
 			),
 			s.Router("/:id/exchange",
 				s.Post(exchanges.ExchangesHandler{}).Action("CreateExchange"),
+				s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeByStartup"),
 			),
 		),
 
