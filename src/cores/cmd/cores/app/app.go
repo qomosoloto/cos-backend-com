@@ -211,6 +211,12 @@ func (p *appConfig) ConfigRoutes() {
 				s.Get(bounties.BountiesHandler{}).Action("ListUserBounties"),
 			),
 		),
+
+		s.Router("/exchanges",
+			s.Router("/:id",
+				s.Get(exchanges.ExchangesHandler{}).Action("GetExchange"),
+			),
+		),
 	)
 }
 

@@ -54,3 +54,17 @@ func (h *ExchangesHandler) CreateExchange(startupId flake.ID) (res interface{}) 
 	res = apires.With(&output, http.StatusOK)
 	return
 }
+
+func (h *ExchangesHandler) GetExchange(id flake.ID) (res interface{}) {
+	var input cores.GetExchangeInput
+	input.Id = id
+	var output cores.ExchangeResult
+	if err := exchangemodels.Exchanges.GetExchange(h.Ctx, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}

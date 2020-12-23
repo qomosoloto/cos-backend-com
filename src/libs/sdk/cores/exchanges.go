@@ -28,3 +28,24 @@ type CreateExchangeResult struct {
 	Id     flake.ID       `json:"id" db:"id"`
 	Status ExchangeStatus `json:"status" db:"status"`
 }
+
+type GetExchangeInput struct {
+	Id        flake.ID `json:"id"`
+	StartupId flake.ID `json:"startupId"`
+}
+
+type ExchangeResult struct {
+	Id      flake.ID `json:"id" db:"id"`
+	TxId    string   `json:"txId" db:"tx_id"`
+	Startup struct {
+		Id          flake.ID `json:"id" db:"id"`
+		Name        string   `json:"name" db:"name"`
+		Logo        string   `json:"logo" db:"logo"`
+		TokenName   string   `json:"tokenName" db:"token_name"`
+		TokenSymbol string   `json:"tokenSymbol" db:"token_symbol"`
+		Description string   `json:"description" db:"description"`
+	} `json:"startup" db:"startup"`
+	PairName    string         `json:"pairName" db:"pair_name"`
+	PairAddress string         `json:"pairAddress" db:"pair_address"`
+	Status      ExchangeStatus `json:"status" db:"status"`
+}
