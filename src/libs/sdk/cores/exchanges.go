@@ -82,3 +82,25 @@ type CreateExchangeTxResult struct {
 	Id     flake.ID         `json:"id" db:"id"`
 	Status ExchangeTxStatus `json:"status" db:"status"`
 }
+
+type GetExchangeTxInput struct {
+	Id   flake.ID `json:"id"`
+	TxId string   `json:"txId"`
+}
+
+type ExchangeTxResult struct {
+	Id             flake.ID         `json:"id" db:"id"`
+	TxId           string           `json:"txId" db:"tx_id"`
+	ExchangeId     flake.ID         `json:"exchangeId" db:"exchange_id"`
+	Account        string           `json:"account" db:"account"`
+	Type           ExchangeTxType   `json:"type" db:"type"`
+	Name           string           `json:"name" db:"name"`
+	TotalValue     float32          `json:"totalValue" db:"total_value"`
+	TokenAmount1   float32          `json:"tokenAmount1" db:"token_amount1"`
+	TokenAmount2   float32          `json:"tokenAmount2" db:"token_amount2"`
+	Fee            float32          `json:"fee" db:"fee"`
+	PricePerToken1 float32          `json:"pricePerToken1" db:"price_per_token1"`
+	PricePerToken2 float32          `json:"pricePerToken2" db:"price_per_token2"`
+	Status         ExchangeTxStatus `json:"status" db:"status"`
+	OccuredAt      string           `json:"occuredAt" db:"occured_at"`
+}

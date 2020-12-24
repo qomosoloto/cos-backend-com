@@ -119,3 +119,28 @@ func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.Create
 		return ethmodels.Transactions.Create(newCtx, &createTransactionsInput)
 	})
 }
+
+func (c *exchanges) GetExchangeTx(ctx context.Context, input *coresSdk.GetExchangeTxInput, output *coresSdk.ExchangeTxResult) (err error) {
+	where := ""
+	if input.Id != 0 {
+		where += `et.id = ${id}`
+	} else if input.TxId != "" {
+		where += `ex.tx_id = ${txId}`
+	} else {
+		where += "1 = 2"
+	}
+	stmt := `
+		SELECT et.*
+		FROM exchange_transactions et
+		WHERE ` + where
+
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{id}":   input.Id,
+		"{txId}": input.TxId,
+	})
+
+	err = c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+	return
+}

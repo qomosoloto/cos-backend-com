@@ -221,6 +221,11 @@ func (p *appConfig) ConfigRoutes() {
 				),
 			),
 		),
+		s.Router("/exchange/transactions",
+			s.Router("/:id",
+				s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeTx"),
+			),
+		),
 	)
 }
 
