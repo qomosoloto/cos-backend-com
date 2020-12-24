@@ -89,6 +89,64 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 	})
 }
 
+func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExchangesInput, outputs interface{}) (total int, err error) {
+	filterStmt := ``
+	var keyword string
+	if input.Keyword != "" {
+		keyword = "%" + util.PgEscapeLike(input.Keyword) + "%"
+		filterStmt += `AND s.name ILIKE ${keyword}`
+	}
+
+	stmt := ` 
+		WITH res AS(
+			SELECT
+				ex.id,
+				ex.tx_id,
+				json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
+				ex.price,
+				ex.liquidities,
+				ex.volumes AS volumes_24hrs,
+				ex.status
+			FROM exchanges ex
+				INNER JOIN startups s ON s.id = ex.startup_id
+				INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
+				INNER JOIN startup_settings ss ON s.id = ss.startup_id
+				INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
+			WHERE 1=1` + filterStmt + `
+				ORDER BY ex.created_at DESC
+				LIMIT ${limit} OFFSET ${offset}
+		)
+		SELECT COALESCE(json_agg(r.*), '[]'::json) FROM res r;
+	`
+
+	countStmt := `
+		SELECT count(*)
+		FROM exchanges ex
+			INNER JOIN startups s ON s.id = ex.startup_id
+			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
+			INNER JOIN startup_settings ss ON s.id = ss.startup_id
+			INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
+		WHERE 1=1` + filterStmt
+
+	query, args := util.PgMapQuery(countStmt, map[string]interface{}{
+		"{keyword}": keyword,
+	})
+
+	if err = c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
+		return db.GetContext(ctx, &total, query, args...)
+	}); err != nil {
+		return
+	}
+	query, args = util.PgMapQuery(stmt, map[string]interface{}{
+		"{keyword}": keyword,
+		"{offset}":  input.Offset,
+		"{limit}":   input.GetLimit(),
+	})
+	return total, c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
+		return db.GetContext(ctx, &util.PgJsonScanWrap{outputs}, query, args...)
+	})
+}
+
 func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
 	stmt := `
 		INSERT INTO exchange_transactions(tx_id, exchange_id, account, type, token_amount1, token_amount2, status)

@@ -83,6 +83,29 @@ func (h *ExchangesHandler) GetExchangeByStartup(id flake.ID) (res interface{}) {
 	return
 }
 
+func (h *ExchangesHandler) ListExchanges() (res interface{}) {
+	var params cores.ListExchangesInput
+	h.Params.BindValuesToStruct(&params)
+
+	if err := validate.Default.Struct(params); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	var output cores.ListExchangesResult
+	total, err := exchangemodels.Exchanges.ListExchanges(h.Ctx, &params, &output.Result)
+	if err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+	output.Total = total
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}
+
 func (h *ExchangesHandler) CreateExchangeTx(exchangeId flake.ID) (res interface{}) {
 	var input cores.CreateExchangeTxInput
 	if err := h.Params.BindJsonBody(&input); err != nil {

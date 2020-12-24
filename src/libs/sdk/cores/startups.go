@@ -81,3 +81,10 @@ type ListStartupsResult struct {
 type HasFollowedStartupResult struct {
 	HasFollowed bool `json:"hasFollowed" db:"has_followed"`
 }
+
+type StartupShortResult struct {
+	Id          flake.ID `json:"id" db:"id"`
+	Name        string   `json:"name" db:"name"`
+	Logo        string   `json:"logo" db:"logo"`
+	TokenSymbol string   `json:"tokenSymbol" db:"token_symbol"`
+}

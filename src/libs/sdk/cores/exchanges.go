@@ -2,6 +2,7 @@ package cores
 
 import (
 	"cos-backend-com/src/common/flake"
+	"cos-backend-com/src/common/pagination"
 )
 
 type ExchangeStatus int
@@ -66,6 +67,23 @@ type ExchangeResult struct {
 	PairName    string         `json:"pairName" db:"pair_name"`
 	PairAddress string         `json:"pairAddress" db:"pair_address"`
 	Status      ExchangeStatus `json:"status" db:"status"`
+}
+
+type ListExchangesInput struct {
+	Keyword string `param:"keyword"`
+	pagination.ListRequest
+}
+
+type ListExchangesResult struct {
+	pagination.ListResult
+	Result []struct {
+		Id           flake.ID           `json:"id" db:"id"`
+		TxId         string             `json:"txId" db:"tx_id"`
+		Startup      StartupShortResult `json:"startup" db:"startup"`
+		Price        float64            `json:"price" db:"price"`
+		Liquidities  float64            `json:"liquidities" db:"liquidities"`
+		Volumes24Hrs float64            `json:"volumes24Hrs" db:"volumes_24hrs"`
+	} `json:"result"`
 }
 
 type CreateExchangeTxInput struct {
