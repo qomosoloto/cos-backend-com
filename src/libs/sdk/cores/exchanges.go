@@ -83,6 +83,7 @@ type ListExchangesResult struct {
 		Price        float64            `json:"price" db:"price"`
 		Liquidities  float64            `json:"liquidities" db:"liquidities"`
 		Volumes24Hrs float64            `json:"volumes24Hrs" db:"volumes_24hrs"`
+		Status       ExchangeStatus     `json:"status" db:"status"`
 	} `json:"result"`
 }
 
