@@ -90,6 +90,7 @@ func (h *ExchangesHandler) CreateExchangeTx(exchangeId flake.ID) (res interface{
 		res = apierror.HandleError(err)
 		return
 	}
+	input.ExchangeId = exchangeId
 	input.Status = cores.ExchangeTxStatusPending
 
 	if err := validate.Default.Struct(input); err != nil {

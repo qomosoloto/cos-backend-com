@@ -125,7 +125,7 @@ func (c *exchanges) GetExchangeTx(ctx context.Context, input *coresSdk.GetExchan
 	if input.Id != 0 {
 		where += `et.id = ${id}`
 	} else if input.TxId != "" {
-		where += `ex.tx_id = ${txId}`
+		where += `et.tx_id = ${txId}`
 	} else {
 		where += "1 = 2"
 	}

@@ -73,8 +73,8 @@ type CreateExchangeTxInput struct {
 	ExchangeId   flake.ID         `json:"exchangeId" validate:"required"`
 	Account      string           `json:"account" validate:"required"`
 	Type         ExchangeTxType   `json:"type" validate:"required"`
-	TokenAmount1 float32          `json:"tokenAmount1"`
-	TokenAmount2 float32          `json:"tokenAmount2"`
+	TokenAmount1 float64          `json:"tokenAmount1"`
+	TokenAmount2 float64          `json:"tokenAmount2"`
 	Status       ExchangeTxStatus `json:"status"`
 }
 
@@ -95,12 +95,12 @@ type ExchangeTxResult struct {
 	Account        string           `json:"account" db:"account"`
 	Type           ExchangeTxType   `json:"type" db:"type"`
 	Name           string           `json:"name" db:"name"`
-	TotalValue     float32          `json:"totalValue" db:"total_value"`
-	TokenAmount1   float32          `json:"tokenAmount1" db:"token_amount1"`
-	TokenAmount2   float32          `json:"tokenAmount2" db:"token_amount2"`
-	Fee            float32          `json:"fee" db:"fee"`
-	PricePerToken1 float32          `json:"pricePerToken1" db:"price_per_token1"`
-	PricePerToken2 float32          `json:"pricePerToken2" db:"price_per_token2"`
+	TotalValue     float64          `json:"totalValue" db:"total_value"`
+	TokenAmount1   float64          `json:"tokenAmount1" db:"token_amount1"`
+	TokenAmount2   float64          `json:"tokenAmount2" db:"token_amount2"`
+	Fee            float64          `json:"fee" db:"fee"`
+	PricePerToken1 float64          `json:"pricePerToken1" db:"price_per_token1"`
+	PricePerToken2 float64          `json:"pricePerToken2" db:"price_per_token2"`
 	Status         ExchangeTxStatus `json:"status" db:"status"`
 	OccuredAt      string           `json:"occuredAt" db:"occured_at"`
 }
