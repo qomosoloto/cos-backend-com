@@ -88,3 +88,34 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 		return db.GetContext(ctx, &util.PgJsonScanWrap{output}, query, args...)
 	})
 }
+
+func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
+	stmt := `
+		INSERT INTO exchange_transactions(tx_id, exchange_id, account, type, token_amount1, token_amount2, status)
+		VALUES (${txId}, ${exchangeId}, ${account}, ${type}, ${tokenAmount1}, ${tokenAmount2}, ${status})
+		RETURNING id, status;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{txId}":         input.TxId,
+		"{exchangeId}":   input.ExchangeId,
+		"{account}":      input.Account,
+		"{type}":         input.Type,
+		"{tokenAmount1}": input.TokenAmount1,
+		"{tokenAmount2}": input.TokenAmount2,
+		"{status}":       input.Status,
+	})
+
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		newCtx := dbconn.WithDB(ctx, db)
+		if er := db.GetContext(newCtx, output, query, args...); er != nil {
+			return er
+		}
+		createTransactionsInput := ethSdk.CreateTransactionsInput{
+			TxId:     input.TxId,
+			Source:   ethSdk.TransactionSourceExchangeTx,
+			SourceId: output.Id,
+		}
+
+		return ethmodels.Transactions.Create(newCtx, &createTransactionsInput)
+	})
+}

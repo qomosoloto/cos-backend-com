@@ -82,3 +82,29 @@ func (h *ExchangesHandler) GetExchangeByStartup(id flake.ID) (res interface{}) {
 	res = apires.With(&output, http.StatusOK)
 	return
 }
+
+func (h *ExchangesHandler) CreateExchangeTx(exchangeId flake.ID) (res interface{}) {
+	var input cores.CreateExchangeTxInput
+	if err := h.Params.BindJsonBody(&input); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+	input.Status = cores.ExchangeTxStatusPending
+
+	if err := validate.Default.Struct(input); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	var output cores.CreateExchangeTxResult
+	if err := exchangemodels.Exchanges.CreateExchangeTx(h.Ctx, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}

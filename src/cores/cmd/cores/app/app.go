@@ -216,6 +216,9 @@ func (p *appConfig) ConfigRoutes() {
 		s.Router("/exchanges",
 			s.Router("/:id",
 				s.Get(exchanges.ExchangesHandler{}).Action("GetExchange"),
+				s.Router("/transactions",
+					s.Post(exchanges.ExchangesHandler{}).Action("CreateExchangeTx"),
+				),
 			),
 		),
 	)

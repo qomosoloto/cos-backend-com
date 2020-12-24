@@ -46,8 +46,10 @@ CREATE TABLE exchange_transactions (
     token_amount1 float,
     token_amount2 float,
     fee float,
+    price_per_token1 float,
+    price_per_token2 float,
     status integer DEFAULT 0 NOT NULL,
-    occured_at timestamp with time zone,
+    occured_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );

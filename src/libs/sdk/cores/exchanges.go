@@ -1,6 +1,8 @@
 package cores
 
-import "cos-backend-com/src/common/flake"
+import (
+	"cos-backend-com/src/common/flake"
+)
 
 type ExchangeStatus int
 
@@ -8,6 +10,22 @@ const (
 	ExchangeStatusPending   ExchangeStatus = iota
 	ExchangeStatusCompleted ExchangeStatus = iota
 	ExchangeStatusUndone    ExchangeStatus = iota
+)
+
+type ExchangeTxType int
+
+const (
+	ExchangeTxTypeAddLiquidity    ExchangeTxType = 1
+	ExchangeTxTypeRemoveLiquidity ExchangeTxType = 2
+	ExchangeTxTypeSwap            ExchangeTxType = 3
+)
+
+type ExchangeTxStatus int
+
+const (
+	ExchangeTxStatusPending   ExchangeTxStatus = iota
+	ExchangeTxStatusCompleted ExchangeTxStatus = iota
+	ExchangeTxStatusUndone    ExchangeTxStatus = iota
 )
 
 type CreateExchangeInput struct {
@@ -48,4 +66,19 @@ type ExchangeResult struct {
 	PairName    string         `json:"pairName" db:"pair_name"`
 	PairAddress string         `json:"pairAddress" db:"pair_address"`
 	Status      ExchangeStatus `json:"status" db:"status"`
+}
+
+type CreateExchangeTxInput struct {
+	TxId         string           `json:"txId" validate:"required"`
+	ExchangeId   flake.ID         `json:"exchangeId" validate:"required"`
+	Account      string           `json:"account" validate:"required"`
+	Type         ExchangeTxType   `json:"type" validate:"required"`
+	TokenAmount1 float32          `json:"tokenAmount1"`
+	TokenAmount2 float32          `json:"tokenAmount2"`
+	Status       ExchangeTxStatus `json:"status"`
+}
+
+type CreateExchangeTxResult struct {
+	Id     flake.ID         `json:"id" db:"id"`
+	Status ExchangeTxStatus `json:"status" db:"status"`
 }
