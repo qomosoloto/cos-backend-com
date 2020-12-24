@@ -214,6 +214,7 @@ func (p *appConfig) ConfigRoutes() {
 		),
 
 		s.Router("/exchanges",
+			s.Get(exchanges.ExchangesHandler{}).Action("ListExchanges"),
 			s.Router("/:id",
 				s.Get(exchanges.ExchangesHandler{}).Action("GetExchange"),
 				s.Router("/transactions",
