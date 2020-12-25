@@ -107,6 +107,12 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 				ex.price,
 				ex.liquidities,
 				ex.volumes AS volumes_24hrs,
+				(SELECT to_char(et.occured_at, 'yyyy-mm-dd') AS occured_day, AVG(total_value) AS avg_price
+				FROM exchange_transactions et
+				WHERE et.exchange_id = ex.id
+					GROUP BY to_char(et.occured_at, 'yyyy-mm-dd')
+					ORDER BY to_char(et.occured_at, 'yyyy-mm-dd')
+					LIMIT 12) AS price_changes,
 				ex.status
 			FROM exchanges ex
 				INNER JOIN startups s ON s.id = ex.startup_id
