@@ -99,7 +99,7 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 	}
 
 	stmt := ` 
-		WITH res AS(
+		WITH exchanges_cte AS (
 			SELECT
 				ex.id,
 				ex.tx_id,
@@ -107,12 +107,6 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 				ex.price,
 				ex.liquidities,
 				ex.volumes AS volumes_24hrs,
-				(SELECT to_char(et.occured_at, 'yyyy-mm-dd') AS occured_day, AVG(total_value) AS avg_price
-				FROM exchange_transactions et
-				WHERE et.exchange_id = ex.id
-					GROUP BY to_char(et.occured_at, 'yyyy-mm-dd')
-					ORDER BY to_char(et.occured_at, 'yyyy-mm-dd')
-					LIMIT 12) AS price_changes,
 				ex.status
 			FROM exchanges ex
 				INNER JOIN startups s ON s.id = ex.startup_id
@@ -122,6 +116,21 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 			WHERE 1=1` + filterStmt + `
 				ORDER BY ex.created_at DESC
 				LIMIT ${limit} OFFSET ${offset}
+		), exchange_tx_rels_cte AS (
+			SELECT et.exchange_id, to_char(et.occured_at, 'yyyy-mm-dd') AS occured_day, AVG(et.total_value) AS avg_price
+			FROM exchanges_cte ec
+			LEFT JOIN exchange_transactions et ON et.exchange_id = ec.id
+				GROUP BY to_char(et.occured_at, 'yyyy-mm-dd')
+				ORDER BY to_char(et.occured_at, 'yyyy-mm-dd')
+				LIMIT 12
+		), exchange_tx_rels_group_cte AS (
+			SELECT etrc.exchange_id, COALESCE(json_agg(etrc), '[]'::json) priceChanges
+			FROM exchange_tx_rels_cte etrc
+			GROUP BY etrc.exchange_id
+		), res AS (
+			SELECT ec.*, COALESCE(etrgc.priceChanges, '[]'::json) priceChanges
+			FROM exchanges_cte ec
+			LEFT JOIN exchange_tx_rels_group_cte etrgc ON ec.id = etrgc.exchange_id
 		)
 		SELECT COALESCE(json_agg(r.*), '[]'::json) FROM res r;
 	`
