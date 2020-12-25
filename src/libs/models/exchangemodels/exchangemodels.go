@@ -120,15 +120,15 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 			SELECT et.exchange_id, to_char(et.occured_at, 'yyyy-mm-dd') AS occured_day, AVG(et.total_value) AS avg_price
 			FROM exchanges_cte ec
 			LEFT JOIN exchange_transactions et ON et.exchange_id = ec.id
-				GROUP BY to_char(et.occured_at, 'yyyy-mm-dd')
+				GROUP BY et.exchange_id, to_char(et.occured_at, 'yyyy-mm-dd')
 				ORDER BY to_char(et.occured_at, 'yyyy-mm-dd')
 				LIMIT 12
 		), exchange_tx_rels_group_cte AS (
-			SELECT etrc.exchange_id, COALESCE(json_agg(etrc), '[]'::json) priceChanges
+			SELECT etrc.exchange_id, COALESCE(json_agg(etrc), '[]'::json) price_changes
 			FROM exchange_tx_rels_cte etrc
 			GROUP BY etrc.exchange_id
 		), res AS (
-			SELECT ec.*, COALESCE(etrgc.priceChanges, '[]'::json) priceChanges
+			SELECT ec.*, COALESCE(etrgc.price_changes, '[]'::json) price_changes
 			FROM exchanges_cte ec
 			LEFT JOIN exchange_tx_rels_group_cte etrgc ON ec.id = etrgc.exchange_id
 		)
