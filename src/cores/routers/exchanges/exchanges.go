@@ -146,3 +146,15 @@ func (h *ExchangesHandler) GetExchangeTx(id flake.ID) (res interface{}) {
 	res = apires.With(&output, http.StatusOK)
 	return
 }
+
+func (h *ExchangesHandler) GetTotalStats() (res interface{}) {
+	var output cores.ExchangeTotalStatsResult
+	if err := exchangemodels.Exchanges.GetTotalStats(h.Ctx, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}

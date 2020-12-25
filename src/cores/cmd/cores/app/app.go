@@ -227,6 +227,9 @@ func (p *appConfig) ConfigRoutes() {
 				s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeTx"),
 			),
 		),
+		s.Router("/exchanges:stats",
+			s.Get(exchanges.ExchangesHandler{}).Action("GetTotalStats"),
+		),
 	)
 }
 

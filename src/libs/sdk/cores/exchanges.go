@@ -128,3 +128,23 @@ type ExchangeTxResult struct {
 	Status         ExchangeTxStatus `json:"status" db:"status"`
 	OccuredAt      string           `json:"occuredAt" db:"occured_at"`
 }
+
+type ExchangeTotalStatsResult struct {
+	Volumes24Hrs     float64 `json:"volumes24Hrs" db:"volumes_24hrs"`
+	Volumes24HrsRate float64 `json:"volumes24HrsRate" db:"volumes_24hrs_rate"`
+	Liquidities      float64 `json:"liquidities" db:"liquidities"`
+	LiquiditiesRate  float64 `json:"liquiditiesRate" db:"liquidities_rate"`
+}
+
+type ExchangeOneStatsResult struct {
+	Volumes24Hrs          float64 `json:"volumes24Hrs" db:"volumes_24hrs"`
+	Volumes24HrsRate      float64 `json:"volumes24HrsRate" db:"volumes_24hrs_rate"`
+	Liquidities           float64 `json:"liquidities" db:"liquidities"`
+	LiquiditiesRate       float64 `json:"liquiditiesRate" db:"liquidities_rate"`
+	Transactions24Hrs     float64 `json:"transactions24Hrs" db:"transactions_24hrs"`
+	Transactions24HrsRate float64 `json:"transactions24HrsRate" db:"transactions_24hrs_rate"`
+	PriceChanges          []struct {
+		OccuredDay string  `json:"occuredDay" db:"occured_day"`
+		AvgPrice   float64 `json:"avgPrice" db:"avg_price"`
+	} `json:"priceChanges" db:"price_changes"`
+}

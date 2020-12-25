@@ -218,3 +218,17 @@ func (c *exchanges) GetExchangeTx(ctx context.Context, input *coresSdk.GetExchan
 	})
 	return
 }
+
+func (c *exchanges) GetTotalStats(ctx context.Context, output *coresSdk.ExchangeTotalStatsResult) (err error) {
+	stmt := `
+		SELECT SUM(volumes) AS volumes_24hrs, AVG(volumes_rate) AS volumes_24hrs_rate, SUM(liquidities) AS liquidities, AVG(liquidities_rate) AS liquidities_rate
+		FROM exchanges
+		`
+
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{})
+
+	err = c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+	return
+}
