@@ -69,7 +69,8 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 							  'token_symbol',ssr.token_symbol) startup,
 			ex.pair_name,
 			ex.pair_address,
-			ex.status
+			ex.status,
+			(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count
 	    FROM exchanges ex
 			INNER JOIN startups s ON s.id = ex.startup_id
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id

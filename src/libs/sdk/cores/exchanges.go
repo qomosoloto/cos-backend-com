@@ -67,6 +67,7 @@ type ExchangeResult struct {
 	PairName    string         `json:"pairName" db:"pair_name"`
 	PairAddress string         `json:"pairAddress" db:"pair_address"`
 	Status      ExchangeStatus `json:"status" db:"status"`
+	FollowCount int            `json:"followCount" db:"follow_count"`
 }
 
 type ListExchangesInput struct {
