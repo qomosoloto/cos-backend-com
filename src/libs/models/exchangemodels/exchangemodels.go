@@ -99,39 +99,52 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 	}
 
 	stmt := ` 
-		WITH exchanges_cte AS (
-			SELECT
-				ex.id,
-				ex.tx_id,
-				json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
-				ex.price,
-				ex.newest_pooled_tokens2 liquidities,
-				ex.status
-			FROM exchanges ex
-				INNER JOIN startups s ON s.id = ex.startup_id
-				INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
-				INNER JOIN startup_settings ss ON s.id = ss.startup_id
-				INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-			WHERE 1=1` + filterStmt + `
-				ORDER BY ex.created_at DESC
-				LIMIT ${limit} OFFSET ${offset}
-		), exchange_tx_rels_cte AS (
-			SELECT et.exchange_id, to_char(et.occured_at, 'yyyy-mm-dd') AS occured_day, AVG(et.total_value) AS avg_price
-			FROM exchanges_cte ec
-			LEFT JOIN exchange_transactions et ON et.exchange_id = ec.id
-				GROUP BY et.exchange_id, to_char(et.occured_at, 'yyyy-mm-dd')
-				ORDER BY to_char(et.occured_at, 'yyyy-mm-dd')
-				LIMIT 12
-		), exchange_tx_rels_group_cte AS (
-			SELECT etrc.exchange_id, COALESCE(json_agg(etrc), '[]'::json) price_changes
-			FROM exchange_tx_rels_cte etrc
-			GROUP BY etrc.exchange_id
-		), res AS (
-			SELECT ec.*, COALESCE(etrgc.price_changes, '[]'::json) price_changes
-			FROM exchanges_cte ec
-			LEFT JOIN exchange_tx_rels_group_cte etrgc ON ec.id = etrgc.exchange_id
-		)
-		SELECT COALESCE(json_agg(r.*), '[]'::json) FROM res r;
+		WITH
+			exchanges_cte AS (
+				SELECT
+					ex.id,
+					ex.tx_id,
+					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
+					ex.price,
+					ex.newest_pooled_tokens2 liquidities,
+					ex.status
+				FROM exchanges ex
+					INNER JOIN startups s ON s.id = ex.startup_id
+					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
+					INNER JOIN startup_settings ss ON s.id = ss.startup_id
+					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
+				WHERE 1=1` + filterStmt + `
+					ORDER BY ex.created_at DESC
+					LIMIT ${limit} OFFSET ${offset}
+			),
+			volumes_24hrs_cte AS (
+				SELECT et.exchange_id, SUM(et.token_amount2) volumes_24hrs
+				FROM exchanges_cte ec
+				LEFT JOIN exchange_transactions et ON et.exchange_id = ec.id
+					WHERE et.status = ${exTxStatusCompleted}
+   						  AND (et.type = ${swap1for2} OR et.type = ${swap2for1})
+						  AND et.occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '24 h') AND CURRENT_TIMESTAMP
+					GROUP BY et.exchange_id),
+			exchange_tx_rels_cte AS (
+				SELECT et.exchange_id, to_char(et.occured_at, 'yyyy-mm-dd') AS occured_day, AVG(et.total_value) AS avg_price
+				FROM exchanges_cte ec
+				LEFT JOIN exchange_transactions et ON et.exchange_id = ec.id
+					GROUP BY et.exchange_id, to_char(et.occured_at, 'yyyy-mm-dd')
+					ORDER BY to_char(et.occured_at, 'yyyy-mm-dd')
+					LIMIT 12
+			),
+			exchange_tx_rels_group_cte AS (
+				SELECT etrc.exchange_id, COALESCE(json_agg(etrc), '[]'::json) price_changes
+				FROM exchange_tx_rels_cte etrc
+				GROUP BY etrc.exchange_id
+			),
+			res AS (
+				SELECT ec.*, v24c.volumes_24hrs, COALESCE(etrgc.price_changes, '[]'::json) price_changes
+				FROM exchanges_cte ec
+				LEFT JOIN exchange_tx_rels_group_cte etrgc ON ec.id = etrgc.exchange_id
+				LEFT JOIN volumes_24hrs_cte v24c ON ec.id = v24c.exchange_id
+			)
+			SELECT COALESCE(json_agg(r.*), '[]'::json) FROM res r;
 	`
 
 	countStmt := `
@@ -153,9 +166,12 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 		return
 	}
 	query, args = util.PgMapQuery(stmt, map[string]interface{}{
-		"{keyword}": keyword,
-		"{offset}":  input.Offset,
-		"{limit}":   input.GetLimit(),
+		"{keyword}":             keyword,
+		"{offset}":              input.Offset,
+		"{limit}":               input.GetLimit(),
+		"{exTxStatusCompleted}": coresSdk.ExchangeTxStatusCompleted,
+		"{swap1for2}":           coresSdk.ExchangeTxTypeSwap1for2,
+		"{swap2for1}":           coresSdk.ExchangeTxTypeSwap2for1,
 	})
 	return total, c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
 		return db.GetContext(ctx, &util.PgJsonScanWrap{outputs}, query, args...)
