@@ -105,7 +105,7 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 				ex.tx_id,
 				json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
 				ex.price,
-				ex.newest_pooled_tokens2,
+				ex.newest_pooled_tokens2 liquidities,
 				ex.status
 			FROM exchanges ex
 				INNER JOIN startups s ON s.id = ex.startup_id
