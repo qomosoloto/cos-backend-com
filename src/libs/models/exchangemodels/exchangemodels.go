@@ -220,11 +220,39 @@ func (c *exchanges) GetExchangeTx(ctx context.Context, input *coresSdk.GetExchan
 
 func (c *exchanges) GetExchangeAllStatsTotal(ctx context.Context, output *coresSdk.ExchangeAllStatsTotalResult) (err error) {
 	stmt := `
-		SELECT SUM(price) AS volumes_24hrs, AVG(price) AS volumes_24hrs_rate, SUM(newest_pooled_tokens2) AS liquidities, AVG(last_pooled_tokens2) AS liquidities_rate
-		FROM exchanges
+		WITH
+			swap_48hrs_rows AS
+				(SELECT * 
+				FROM exchange_transactions
+				WHERE (type = ${swap1for2} OR type = ${swap2for1})
+					  AND status = ${exTxStatusCompleted}
+					  AND occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '48 h') AND	CURRENT_TIMESTAMP),
+			swap_24hrs_rows AS
+				(SELECT * 
+				FROM swap_48hrs_rows
+				WHERE occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '24 h') AND	CURRENT_TIMESTAMP),
+			volumes_24hrs_cte AS
+				(SELECT COALESCE(SUM(token_amount2), 0) AS volumes_24hrs
+				FROM swap_24hrs_rows),
+			volumes_48hrs_cte AS
+				(SELECT COALESCE(SUM(token_amount2), 0) AS volumes_48hrs
+				FROM swap_48hrs_rows),
+			exchange_stats_cte AS
+				(SELECT COALESCE(SUM(newest_pooled_tokens2), 0) AS liquidities, COALESCE(SUM(last_pooled_tokens2), 0) AS liquidities_last
+				FROM exchanges)
+		
+			SELECT volumes_24hrs AS volumes_24hrs,
+				   CASE (volumes_48hrs-volumes_24hrs) WHEN 0 THEN 0 ELSE (2*volumes_24hrs-volumes_48hrs)/(volumes_48hrs-volumes_24hrs) END AS volumes_24hrs_rate,
+				   liquidities,
+				   CASE liquidities_last WHEN 0 THEN 0 ELSE (liquidities-liquidities_last)/liquidities_last END AS liquidities_rate
+			FROM volumes_24hrs_cte, volumes_48hrs_cte, exchange_stats_cte
 		`
 
-	query, args := util.PgMapQuery(stmt, map[string]interface{}{})
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{exTxStatusCompleted}": coresSdk.ExchangeTxStatusCompleted,
+		"{swap1for2}":           coresSdk.ExchangeTxTypeSwap1for2,
+		"{swap2for1}":           coresSdk.ExchangeTxTypeSwap2for1,
+	})
 
 	err = c.Invoke(ctx, func(db dbconn.Q) error {
 		return db.GetContext(ctx, output, query, args...)
