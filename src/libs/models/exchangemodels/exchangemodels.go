@@ -287,47 +287,103 @@ func (c *exchanges) GetExchangeOneStatsTotal(ctx context.Context, input *coresSd
 	stmt := `
 		WITH
 			transaction_48hrs_rows AS
-			(SELECT * 
-			FROM exchange_transactions
-			WHERE exchange_id = ${id}
-				  AND status = ${exTxStatusCompleted}
-				  AND occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '48 h') AND	CURRENT_TIMESTAMP),
+				(SELECT * 
+				FROM exchange_transactions
+				WHERE exchange_id = ${id}
+					  AND status = ${exTxStatusCompleted}
+					  AND occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '48 h') AND	CURRENT_TIMESTAMP),
 			transaction_24hrs_rows AS
-			(SELECT * 
-			FROM transaction_48hrs_rows
-			WHERE occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '24 h') AND	CURRENT_TIMESTAMP),
+				(SELECT * 
+				FROM transaction_48hrs_rows
+				WHERE occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '24 h') AND	CURRENT_TIMESTAMP),
 			swap_48hrs_rows AS
-			(SELECT * 
-			FROM transaction_48hrs_rows
-			WHERE type = ${swap1for2} OR type = ${swap2for1}),
+				(SELECT * 
+				FROM transaction_48hrs_rows
+				WHERE type = ${swap1for2} OR type = ${swap2for1}),
 			swap_24hrs_rows AS
-			(SELECT * 
-			FROM swap_48hrs_rows
-			WHERE occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '24 h') AND	CURRENT_TIMESTAMP),
+				(SELECT * 
+				FROM swap_48hrs_rows
+				WHERE occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '24 h') AND	CURRENT_TIMESTAMP),
 			volumes_24hrs_cte AS
-			(SELECT COALESCE(SUM(token_amount2), 0) AS volumes_24hrs
-			FROM swap_24hrs_rows),
+				(SELECT COALESCE(SUM(token_amount2), 0) AS volumes_24hrs
+				FROM swap_24hrs_rows),
 			volumes_48hrs_cte AS
-			(SELECT COALESCE(SUM(token_amount2), 0) AS volumes_48hrs
-			FROM swap_48hrs_rows),
+				(SELECT COALESCE(SUM(token_amount2), 0) AS volumes_48hrs
+				FROM swap_48hrs_rows),
 			transactions_24hrs_cte AS
-			(SELECT COALESCE(COUNT(*), 0) AS transactions_24hrs
-			FROM transaction_24hrs_rows),
+				(SELECT COALESCE(COUNT(*), 0) AS transactions_24hrs
+				FROM transaction_24hrs_rows),
 			transactions_48hrs_cte AS
-			(SELECT COALESCE(COUNT(*), 0)::NUMERIC AS transactions_48hrs
-			FROM transaction_48hrs_rows),
+				(SELECT COALESCE(COUNT(*), 0)::NUMERIC AS transactions_48hrs
+				FROM transaction_48hrs_rows),
 			liquidities_cte AS
-			(SELECT COALESCE(newest_pooled_tokens2, 0) AS liquidities, COALESCE(last_pooled_tokens2, 0) AS liquidities_last
-			FROM exchanges
-			WHERE id = ${id})
+				(SELECT COALESCE(newest_pooled_tokens2, 0) AS liquidities, COALESCE(last_pooled_tokens2, 0) AS liquidities_last
+				FROM exchanges
+				WHERE id = ${id})
 			
 			SELECT volumes_24hrs AS volumes_24hrs,
-						 CASE (volumes_48hrs-volumes_24hrs) WHEN 0 THEN 0 ELSE (2*volumes_24hrs-volumes_48hrs)/(volumes_48hrs-volumes_24hrs) END AS volumes_24hrs_rate,
-						 liquidities,
-						 CASE liquidities_last WHEN 0 THEN 0 ELSE (liquidities-liquidities_last)/liquidities_last END AS liquidities_rate,
-						 transactions_24hrs,
-						 CASE (transactions_48hrs-transactions_24hrs) WHEN 0 THEN 0 ELSE (2*transactions_24hrs-transactions_48hrs)/(transactions_48hrs-transactions_24hrs) END AS transactions_24hrs_rate
+				   CASE (volumes_48hrs-volumes_24hrs) WHEN 0 THEN 0 ELSE (2*volumes_24hrs-volumes_48hrs)/(volumes_48hrs-volumes_24hrs) END AS volumes_24hrs_rate,
+				   liquidities,
+				   CASE liquidities_last WHEN 0 THEN 0 ELSE (liquidities-liquidities_last)/liquidities_last END AS liquidities_rate,
+				   transactions_24hrs,
+				   CASE (transactions_48hrs-transactions_24hrs) WHEN 0 THEN 0 ELSE (2*transactions_24hrs-transactions_48hrs)/(transactions_48hrs-transactions_24hrs) END AS transactions_24hrs_rate
 			FROM volumes_24hrs_cte, volumes_48hrs_cte, liquidities_cte, transactions_24hrs_cte, transactions_48hrs_cte
+		`
+
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{id}":                  input.Id,
+		"{exTxStatusCompleted}": coresSdk.ExchangeTxStatusCompleted,
+		"{swap1for2}":           coresSdk.ExchangeTxTypeSwap1for2,
+		"{swap2for1}":           coresSdk.ExchangeTxTypeSwap2for1,
+	})
+
+	err = c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+	return
+}
+
+func (c *exchanges) GetExchangeOneStatsPriceChange(ctx context.Context, input *coresSdk.ExchangeOneStatsInput, output *coresSdk.ExchangeOneStatsPriceChangeResult) (err error) {
+	stmt := `
+		WITH
+			swap_rows AS (
+				SELECT * 
+				FROM exchange_transactions
+				WHERE exchange_id = ${id}
+					  AND status = ${exTxStatusCompleted}
+					  AND (type = ${swap1for2} OR type = ${swap2for1}
+					ORDER BY occured_at),
+			swap_24hrs_rows AS (
+				SELECT * 
+				FROM swap_rows
+				WHERE occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '24 h') AND CURRENT_TIMESTAMP),
+			price_24hrs_cte AS (
+				SELECT COALESCE(s24r.price_per_token1, 0) AS price24hrs_per_token1
+				FROM swap_24hrs_rows s24r
+					LIMIT 1),
+			price_now_cte AS (
+				SELECT COALESCE(s24r.price_per_token1, 0) AS price_per_token1, COALESCE(s24r.price_per_token2, 0) AS price_per_token2
+				FROM swap_24hrs_rows s24r
+					ORDER BY DESC
+					LIMIT 1),
+			day_price_rels_cte AS (
+				SELECT * FROM 
+					(SELECT exchange_id, ROW_NUMBER() OVER (PARTITION BY to_char(occured_at, 'yyyy-mm-dd') ORDER BY occured_at DESC) row_id, to_char(occured_at, 'yyyy-mm-dd') AS occured_day, price_per_token1 AS end_price
+					FROM swap_rows) t
+				WHERE row_id = 1
+					LIMIT 31),
+			exchange_cte AS (
+				SELECT token_symbol1, token_symbol2, 
+				FROM exchanges
+				WHERE e.id = ${id})
+
+			SELECT token_symbol1 AS token_symbol1,
+				   token_symbol2 AS token_symbol2,
+				   price_per_token1 AS price_per_token1,
+				   price_per_token2 AS price_per_token1,
+				   CASE price24hrs_per_token1 WHEN 0 THEN 0 ELSE (price_per_token1-price24hrs_per_token1)/price24hrs_per_token1 END AS price_change_rate,
+				   COALESCE(json_agg(dprc), '[]'::json) AS price_changes
+			FROM exchange_cte, price_now_cte, price_24hrs_cte, day_price_rels_cte dprc
 		`
 
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{

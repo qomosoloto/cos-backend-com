@@ -186,8 +186,8 @@ func (h *ExchangesHandler) GetExchangeOneStatsTotal(exchangeId flake.ID) (res in
 func (h *ExchangesHandler) GetExchangeOneStatsPriceChange(exchangeId flake.ID) (res interface{}) {
 	var input cores.ExchangeOneStatsInput
 	input.Id = exchangeId
-	var output cores.ExchangeOneStatsTotalResult
-	if err := exchangemodels.Exchanges.GetExchangeOneStatsTotal(h.Ctx, &input, &output); err != nil {
+	var output cores.ExchangeOneStatsPriceChangeResult
+	if err := exchangemodels.Exchanges.GetExchangeOneStatsPriceChange(h.Ctx, &input, &output); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
 		return

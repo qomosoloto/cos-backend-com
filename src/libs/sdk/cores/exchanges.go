@@ -153,8 +153,13 @@ type ExchangeOneStatsTotalResult struct {
 }
 
 type ExchangeOneStatsPriceChangeResult struct {
-	PriceChanges []struct {
+	TokenSymbol1    string  `json:"tokenSymbol1" db:"token_symbol1"`
+	TokenSymbol2    string  `json:"tokenSymbol2" db:"token_symbol2"`
+	PricePerToken1  float64 `json:"pricePerToken1" db:"price_per_token1"`
+	PricePerToken2  float64 `json:"pricePerToken2" db:"price_per_token2"`
+	PriceChangeRate float64 `json:"priceChangeRate" db:"price_change_rate"`
+	PriceChanges    []struct {
 		OccuredDay string  `json:"occuredDay" db:"occured_day"`
-		AvgPrice   float64 `json:"avgPrice" db:"avg_price"`
+		EndPrice   float64 `json:"endPrice" db:"end_price"`
 	} `json:"priceChanges" db:"price_changes"`
 }
