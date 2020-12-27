@@ -220,6 +220,12 @@ func (p *appConfig) ConfigRoutes() {
 				s.Router("/transactions",
 					s.Post(exchanges.ExchangesHandler{}).Action("CreateExchangeTx"),
 				),
+				s.Router("/stats:total",
+					s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeOneStatsTotal"),
+				),
+				s.Router("/stats:priceChange",
+					s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeOneStatsPriceChange"),
+				),
 			),
 		),
 		s.Router("/exchange/transactions",
@@ -228,7 +234,7 @@ func (p *appConfig) ConfigRoutes() {
 			),
 		),
 		s.Router("/exchanges:stats",
-			s.Get(exchanges.ExchangesHandler{}).Action("GetTotalStats"),
+			s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeAllStatsTotal"),
 		),
 	)
 }

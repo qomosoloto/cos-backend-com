@@ -18,7 +18,8 @@ type ExchangeTxType int
 const (
 	ExchangeTxTypeAddLiquidity    ExchangeTxType = 1
 	ExchangeTxTypeRemoveLiquidity ExchangeTxType = 2
-	ExchangeTxTypeSwap            ExchangeTxType = 3
+	ExchangeTxTypeSwap1for2       ExchangeTxType = 3
+	ExchangeTxTypeSwap2for1       ExchangeTxType = 4
 )
 
 type ExchangeTxStatus int
@@ -129,21 +130,28 @@ type ExchangeTxResult struct {
 	OccuredAt      string           `json:"occuredAt" db:"occured_at"`
 }
 
-type ExchangeTotalStatsResult struct {
+type ExchangeAllStatsTotalResult struct {
 	Volumes24Hrs     float64 `json:"volumes24Hrs" db:"volumes_24hrs"`
 	Volumes24HrsRate float64 `json:"volumes24HrsRate" db:"volumes_24hrs_rate"`
 	Liquidities      float64 `json:"liquidities" db:"liquidities"`
 	LiquiditiesRate  float64 `json:"liquiditiesRate" db:"liquidities_rate"`
 }
 
-type ExchangeOneStatsResult struct {
+type ExchangeOneStatsInput struct {
+	Id flake.ID `json:"id"`
+}
+
+type ExchangeOneStatsTotalResult struct {
 	Volumes24Hrs          float64 `json:"volumes24Hrs" db:"volumes_24hrs"`
 	Volumes24HrsRate      float64 `json:"volumes24HrsRate" db:"volumes_24hrs_rate"`
 	Liquidities           float64 `json:"liquidities" db:"liquidities"`
 	LiquiditiesRate       float64 `json:"liquiditiesRate" db:"liquidities_rate"`
-	Transactions24Hrs     float64 `json:"transactions24Hrs" db:"transactions_24hrs"`
+	Transactions24Hrs     int     `json:"transactions24Hrs" db:"transactions_24hrs"`
 	Transactions24HrsRate float64 `json:"transactions24HrsRate" db:"transactions_24hrs_rate"`
-	PriceChanges          []struct {
+}
+
+type ExchangeOneStatsPriceChangeResult struct {
+	PriceChanges []struct {
 		OccuredDay string  `json:"occuredDay" db:"occured_day"`
 		AvgPrice   float64 `json:"avgPrice" db:"avg_price"`
 	} `json:"priceChanges" db:"price_changes"`
