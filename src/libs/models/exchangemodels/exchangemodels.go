@@ -124,13 +124,16 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 					WHERE et.status = ${exTxStatusCompleted}
    						  AND (et.type = ${swap1for2} OR et.type = ${swap2for1})
 						  AND et.occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '24 h') AND CURRENT_TIMESTAMP
-					GROUP BY et.exchange_id),
+					GROUP BY et.exchange_id
+			),
 			exchange_tx_rels_cte AS (
-				SELECT et.exchange_id, to_char(et.occured_at, 'yyyy-mm-dd') AS occured_day, AVG(et.total_value) AS avg_price
-				FROM exchanges_cte ec
-				LEFT JOIN exchange_transactions et ON et.exchange_id = ec.id
-					GROUP BY et.exchange_id, to_char(et.occured_at, 'yyyy-mm-dd')
-					ORDER BY to_char(et.occured_at, 'yyyy-mm-dd')
+				SELECT * FROM 
+					(SELECT exchange_id, ROW_NUMBER() OVER (PARTITION BY to_char(occured_at, 'yyyy-mm-dd') ORDER BY occured_at DESC) row_id, to_char(occured_at, 'yyyy-mm-dd') AS occured_day, price_per_token1 AS end_price
+					FROM exchanges_cte ec
+					LEFT JOIN exchange_transactions et ON et.exchange_id = ec.id
+						ORDER BY et.occured_at) t
+				WHERE row_id = 1
+					  AND NOT exchange_id IS NULL
 					LIMIT 12
 			),
 			exchange_tx_rels_group_cte AS (
