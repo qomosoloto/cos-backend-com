@@ -220,7 +220,7 @@ func (c *exchanges) GetExchangeTx(ctx context.Context, input *coresSdk.GetExchan
 
 func (c *exchanges) GetExchangeAllStatsTotal(ctx context.Context, output *coresSdk.ExchangeAllStatsTotalResult) (err error) {
 	stmt := `
-		SELECT SUM(volumes) AS volumes_24hrs, AVG(volumes_rate) AS volumes_24hrs_rate, SUM(liquidities) AS liquidities, AVG(liquidities_rate) AS liquidities_rate
+		SELECT SUM(price) AS volumes_24hrs, AVG(price) AS volumes_24hrs_rate, SUM(newest_pooled_tokens2) AS liquidities, AVG(last_pooled_tokens2) AS liquidities_rate
 		FROM exchanges
 		`
 
@@ -263,7 +263,7 @@ func (c *exchanges) GetExchangeOneStatsTotal(ctx context.Context, input *coresSd
 			(SELECT COALESCE(COUNT(*), 0) AS transactions_24hrs
 			FROM transaction_24hrs_rows),
 			transactions_48hrs_cte AS
-			(SELECT CAST(COALESCE(COUNT(*), 0) AS NUMERIC) AS transactions_48hrs
+			(SELECT COALESCE(COUNT(*), 0)::NUMERIC AS transactions_48hrs
 			FROM transaction_48hrs_rows),
 			liquidities_cte AS
 			(SELECT COALESCE(newest_pooled_tokens2, 0) AS liquidities, COALESCE(last_pooled_tokens2, 0) AS liquidities_last

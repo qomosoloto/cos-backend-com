@@ -172,3 +172,17 @@ func (h *ExchangesHandler) GetExchangeOneStatsTotal(exchangeId flake.ID) (res in
 	res = apires.With(&output, http.StatusOK)
 	return
 }
+
+func (h *ExchangesHandler) GetExchangeOneStatsPriceChange(exchangeId flake.ID) (res interface{}) {
+	var input cores.ExchangeOneStatsInput
+	input.Id = exchangeId
+	var output cores.ExchangeOneStatsTotalResult
+	if err := exchangemodels.Exchanges.GetExchangeOneStatsTotal(h.Ctx, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}
