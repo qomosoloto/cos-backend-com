@@ -88,7 +88,7 @@ type ListExchangesResult struct {
 		Status       ExchangeStatus     `json:"status" db:"status"`
 		PriceChanges []struct {
 			OccuredDay string  `json:"occuredDay" db:"occured_day"`
-			AvgPrice   float64 `json:"avgPrice" db:"avg_price"`
+			EndPrice   float64 `json:"endPrice" db:"end_price"`
 		} `json:"priceChanges" db:"price_changes"`
 	} `json:"result"`
 }
