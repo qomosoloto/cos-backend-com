@@ -164,18 +164,22 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 
 func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
 	stmt := `
-		INSERT INTO exchange_transactions(tx_id, exchange_id, account, type, token_amount1, token_amount2, status)
-		VALUES (${txId}, ${exchangeId}, ${account}, ${type}, ${tokenAmount1}, ${tokenAmount2}, ${status})
+		INSERT INTO exchange_transactions(tx_id, exchange_id, account, type, token_amount1, token_amount2, status,
+										  price_per_token1, price_per_token2)
+		VALUES (${txId}, ${exchangeId}, ${account}, ${type}, ${tokenAmount1}, ${tokenAmount2}, ${status},
+				${pricePerToken1}, ${pricePerToken2})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
-		"{txId}":         input.TxId,
-		"{exchangeId}":   input.ExchangeId,
-		"{account}":      input.Account,
-		"{type}":         input.Type,
-		"{tokenAmount1}": input.TokenAmount1,
-		"{tokenAmount2}": input.TokenAmount2,
-		"{status}":       input.Status,
+		"{txId}":           input.TxId,
+		"{exchangeId}":     input.ExchangeId,
+		"{account}":        input.Account,
+		"{type}":           input.Type,
+		"{tokenAmount1}":   input.TokenAmount1,
+		"{tokenAmount2}":   input.TokenAmount2,
+		"{status}":         input.Status,
+		"{pricePerToken1}": input.PricePerToken1,
+		"{pricePerToken2}": input.PricePerToken2,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {

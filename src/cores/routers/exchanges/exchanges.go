@@ -115,6 +115,16 @@ func (h *ExchangesHandler) CreateExchangeTx(exchangeId flake.ID) (res interface{
 	}
 	input.ExchangeId = exchangeId
 	input.Status = cores.ExchangeTxStatusPending
+	if input.TokenAmount1 == 0 {
+		input.PricePerToken1 = 0
+	} else {
+		input.PricePerToken1 = input.TokenAmount2 / input.TokenAmount1
+	}
+	if input.TokenAmount2 == 0 {
+		input.PricePerToken2 = 0
+	} else {
+		input.PricePerToken2 = input.TokenAmount1 / input.TokenAmount2
+	}
 
 	if err := validate.Default.Struct(input); err != nil {
 		h.Log.Warn(err)
