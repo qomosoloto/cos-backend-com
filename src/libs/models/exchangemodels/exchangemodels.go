@@ -349,31 +349,37 @@ func (c *exchanges) GetExchangeOneStatsPriceChange(ctx context.Context, input *c
 			exchange_cte AS (
 				SELECT id, token_symbol1, token_symbol2
 				FROM exchanges
-				WHERE id = ${id}),
+				WHERE id = ${id}
+			),
 			swap_rows AS (
 				SELECT exchange_id, price_per_token1, price_per_token2, occured_at
 				FROM exchange_transactions
 				WHERE exchange_id = ${id}
 					  AND status = ${exTxStatusCompleted}
 					  AND (type = ${swap1for2} OR type = ${swap2for1})
-					ORDER BY occured_at DESC),
+					ORDER BY occured_at DESC
+			),
 			swap_newest_row AS (
 				SELECT *
 				FROM swap_rows
-					LIMIT 1),
+					LIMIT 1
+			),
 			price_now_cte AS (
 				SELECT exchange_id, COALESCE(price_per_token1, 0) AS price_per_token1, COALESCE(price_per_token2, 0) AS price_per_token2
 				FROM exchange_cte ec
-				LEFT JOIN swap_newest_row snr ON snr.exchange_id = ec.id),
+				LEFT JOIN swap_newest_row snr ON snr.exchange_id = ec.id
+			),
 			swap_24hrs_row AS (
 				SELECT *
 				FROM swap_rows
 				WHERE occured_at < (SELECT CURRENT_TIMESTAMP - interval '24 h')
-					LIMIT 1),
+					LIMIT 1
+			),
 			price_24hrs_cte AS (
 				SELECT exchange_id, COALESCE(price_per_token1, 0) AS price24hrs_per_token1
 				FROM exchange_cte ec
-				LEFT JOIN swap_24hrs_row s24r ON s24r.exchange_id = ec.id),
+				LEFT JOIN swap_24hrs_row s24r ON s24r.exchange_id = ec.id
+			),
 			
 			day_price_rels_cte AS (
 				SELECT *
@@ -381,22 +387,27 @@ func (c *exchanges) GetExchangeOneStatsPriceChange(ctx context.Context, input *c
 					(SELECT exchange_id, ROW_NUMBER() OVER (PARTITION BY to_char(occured_at, 'yyyy-mm-dd') ORDER BY occured_at DESC) row_id, to_char(occured_at, 'yyyy-mm-dd') AS occured_day, price_per_token1 AS end_price
 					FROM swap_rows) t
 				WHERE row_id = 1
-					LIMIT 31),
+					LIMIT 31
+			),
 			day_price_rels_group_cte AS (
 				SELECT dprc.exchange_id, COALESCE(json_agg(dprc), '[]'::json) AS price_changes
 				FROM day_price_rels_cte dprc
-				GROUP BY dprc.exchange_id)
+				GROUP BY dprc.exchange_id
+			),
+			res AS (
+				SELECT token_symbol1,
+					   token_symbol2,
+					   price_per_token1,
+					   price_per_token2,
+					   CASE price24hrs_per_token1 WHEN 0 THEN 0 ELSE (price_per_token1-price24hrs_per_token1)/price24hrs_per_token1 END AS price_change_rate,
+					   COALESCE(dprgc.price_changes, '[]'::json) AS price_changes
+				FROM exchange_cte ec
+				LEFT JOIN price_now_cte pnc ON pnc.exchange_id = ec.id
+				LEFT JOIN price_24hrs_cte p24c ON p24c.exchange_id = ec.id
+				LEFT JOIN day_price_rels_group_cte dprgc ON dprgc.exchange_id = ec.id
+			)
 
-			SELECT token_symbol1,
-				   token_symbol2,
-				   price_per_token1,
-				   price_per_token2,
-				   CASE price24hrs_per_token1 WHEN 0 THEN 0 ELSE (price_per_token1-price24hrs_per_token1)/price24hrs_per_token1 END AS price_change_rate,
-				   COALESCE(dprgc.price_changes, '[]'::json) AS price_changes
-			FROM exchange_cte ec
-			LEFT JOIN price_now_cte pnc ON pnc.exchange_id = ec.id
-			LEFT JOIN price_24hrs_cte p24c ON p24c.exchange_id = ec.id
-			LEFT JOIN day_price_rels_group_cte dprgc ON dprgc.exchange_id = ec.id
+			SELECT row_to_json(res.*) FROM res
 		`
 
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
@@ -407,7 +418,7 @@ func (c *exchanges) GetExchangeOneStatsPriceChange(ctx context.Context, input *c
 	})
 
 	err = c.Invoke(ctx, func(db dbconn.Q) error {
-		return db.GetContext(ctx, output, query, args...)
+		return db.GetContext(ctx, &util.PgJsonScanWrap{output}, query, args...)
 	})
 	return
 }
