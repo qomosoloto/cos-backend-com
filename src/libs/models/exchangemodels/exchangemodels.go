@@ -346,26 +346,35 @@ func (c *exchanges) GetExchangeOneStatsTotal(ctx context.Context, input *coresSd
 func (c *exchanges) GetExchangeOneStatsPriceChange(ctx context.Context, input *coresSdk.ExchangeOneStatsInput, output *coresSdk.ExchangeOneStatsPriceChangeResult) (err error) {
 	stmt := `
 		WITH
+			exchange_cte AS (
+				SELECT id, token_symbol1, token_symbol2
+				FROM exchanges
+				WHERE id = ${id}),
 			swap_rows AS (
-				SELECT * 
+				SELECT exchange_id, price_per_token1, price_per_token2, occured_at
 				FROM exchange_transactions
 				WHERE exchange_id = ${id}
 					  AND status = ${exTxStatusCompleted}
 					  AND (type = ${swap1for2} OR type = ${swap2for1})
-					ORDER BY occured_at),
-			swap_24hrs_rows AS (
-				SELECT * 
+					ORDER BY occured_at DESC),
+			swap_newest_row AS (
+				SELECT *
 				FROM swap_rows
-				WHERE occured_at BETWEEN (SELECT CURRENT_TIMESTAMP - interval '24 h') AND CURRENT_TIMESTAMP),
-			price_24hrs_cte AS (
-				SELECT s24r.exchange_id, COALESCE(s24r.price_per_token1, 0) AS price24hrs_per_token1
-				FROM swap_24hrs_rows s24r
 					LIMIT 1),
 			price_now_cte AS (
-				SELECT s24r.exchange_id, COALESCE(s24r.price_per_token1, 0) AS price_per_token1, COALESCE(s24r.price_per_token2, 0) AS price_per_token2
-				FROM swap_24hrs_rows s24r
-					ORDER BY occured_at DESC
+				SELECT exchange_id, COALESCE(price_per_token1, 0) AS price_per_token1, COALESCE(price_per_token2, 0) AS price_per_token2
+				FROM exchange_cte ec
+				LEFT JOIN swap_newest_row snr ON snr.exchange_id = ec.id),
+			swap_24hrs_row AS (
+				SELECT *
+				FROM swap_rows
+				WHERE occured_at < (SELECT CURRENT_TIMESTAMP - interval '24 h')
 					LIMIT 1),
+			price_24hrs_cte AS (
+				SELECT exchange_id, COALESCE(price_per_token1, 0) AS price24hrs_per_token1
+				FROM exchange_cte ec
+				LEFT JOIN swap_24hrs_row s24r ON s24r.exchange_id = ec.id),
+			
 			day_price_rels_cte AS (
 				SELECT *
 				FROM 
@@ -376,17 +385,13 @@ func (c *exchanges) GetExchangeOneStatsPriceChange(ctx context.Context, input *c
 			day_price_rels_group_cte AS (
 				SELECT dprc.exchange_id, COALESCE(json_agg(dprc), '[]'::json) AS price_changes
 				FROM day_price_rels_cte dprc
-				GROUP BY dprc.exchange_id),
-			exchange_cte AS (
-				SELECT id, token_symbol1, token_symbol2
-				FROM exchanges
-				WHERE id = ${id})
+				GROUP BY dprc.exchange_id)
 
-			SELECT token_symbol1 AS token_symbol1,
-				   token_symbol2 AS token_symbol2,
-				   COALESCE(price_per_token1, 0) AS price_per_token1,
-				   COALESCE(price_per_token2, 0) AS price_per_token2,
-				   0,
+			SELECT token_symbol1,
+				   token_symbol2,
+				   price_per_token1,
+				   price_per_token2,
+				   CASE price24hrs_per_token1 WHEN 0 THEN 0 ELSE (price_per_token1-price24hrs_per_token1)/price24hrs_per_token1 END AS price_change_rate,
 				   COALESCE(dprgc.price_changes, '[]'::json) AS price_changes
 			FROM exchange_cte ec
 			LEFT JOIN price_now_cte pnc ON pnc.exchange_id = ec.id
