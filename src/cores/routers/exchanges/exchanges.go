@@ -115,6 +115,16 @@ func (h *ExchangesHandler) CreateExchangeTx(exchangeId flake.ID) (res interface{
 	}
 	input.ExchangeId = exchangeId
 	input.Status = cores.ExchangeTxStatusPending
+	if input.TokenAmount1 == 0 {
+		input.PricePerToken1 = 0
+	} else {
+		input.PricePerToken1 = input.TokenAmount2 / input.TokenAmount1
+	}
+	if input.TokenAmount2 == 0 {
+		input.PricePerToken2 = 0
+	} else {
+		input.PricePerToken2 = input.TokenAmount1 / input.TokenAmount2
+	}
 
 	if err := validate.Default.Struct(input); err != nil {
 		h.Log.Warn(err)
@@ -138,6 +148,46 @@ func (h *ExchangesHandler) GetExchangeTx(id flake.ID) (res interface{}) {
 	input.Id = id
 	var output cores.ExchangeTxResult
 	if err := exchangemodels.Exchanges.GetExchangeTx(h.Ctx, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}
+
+func (h *ExchangesHandler) GetExchangeAllStatsTotal() (res interface{}) {
+	var output cores.ExchangeAllStatsTotalResult
+	if err := exchangemodels.Exchanges.GetExchangeAllStatsTotal(h.Ctx, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}
+
+func (h *ExchangesHandler) GetExchangeOneStatsTotal(exchangeId flake.ID) (res interface{}) {
+	var input cores.ExchangeOneStatsInput
+	input.Id = exchangeId
+	var output cores.ExchangeOneStatsTotalResult
+	if err := exchangemodels.Exchanges.GetExchangeOneStatsTotal(h.Ctx, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}
+
+func (h *ExchangesHandler) GetExchangeOneStatsPriceChange(exchangeId flake.ID) (res interface{}) {
+	var input cores.ExchangeOneStatsInput
+	input.Id = exchangeId
+	var output cores.ExchangeOneStatsPriceChangeResult
+	if err := exchangemodels.Exchanges.GetExchangeOneStatsPriceChange(h.Ctx, &input, &output); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
 		return
