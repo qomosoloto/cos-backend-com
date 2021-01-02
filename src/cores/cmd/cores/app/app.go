@@ -7,6 +7,7 @@ import (
 	"cos-backend-com/src/cores"
 	"cos-backend-com/src/cores/routers/bounties"
 	"cos-backend-com/src/cores/routers/categories"
+	"cos-backend-com/src/cores/routers/exchanges"
 	"cos-backend-com/src/cores/routers/files"
 	"cos-backend-com/src/cores/routers/follows"
 	"cos-backend-com/src/cores/routers/startups"
@@ -138,6 +139,10 @@ func (p *appConfig) ConfigRoutes() {
 				s.Post(follows.FollowsHandler{}).Action("Create"),
 				s.Delete(follows.FollowsHandler{}).Action("Delete"),
 			),
+			s.Router("/:id/exchange",
+				s.Post(exchanges.ExchangesHandler{}).Action("CreateExchange"),
+				s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeByStartup"),
+			),
 		),
 
 		s.Router("/categories",
@@ -205,6 +210,21 @@ func (p *appConfig) ConfigRoutes() {
 			),
 			s.Router("/users/:userId",
 				s.Get(bounties.BountiesHandler{}).Action("ListUserBounties"),
+			),
+		),
+
+		s.Router("/exchanges",
+			s.Get(exchanges.ExchangesHandler{}).Action("ListExchanges"),
+			s.Router("/:id",
+				s.Get(exchanges.ExchangesHandler{}).Action("GetExchange"),
+				s.Router("/transactions",
+					s.Post(exchanges.ExchangesHandler{}).Action("CreateExchangeTx"),
+				),
+			),
+		),
+		s.Router("/exchange/transactions",
+			s.Router("/:id",
+				s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeTx"),
 			),
 		),
 	)
