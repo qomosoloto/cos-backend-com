@@ -238,10 +238,9 @@ func (p *appConfig) ConfigRoutes() {
 		),
 
 		s.Router("/startups",
-			s.Filter(filters.LoginRequiredInner),
 			s.Router("/:id",
 				s.Router("/discos",
-					s.Post(discos.DiscosHandler{}).Action("CreateStartupDisco"),
+					s.Post(discos.DiscosHandler{}).Filter(filters.LoginRequiredInner).Action("CreateStartupDisco"),
 					s.Get(discos.DiscosHandler{}).Action("GetStartupDisco"),
 				),
 			),
