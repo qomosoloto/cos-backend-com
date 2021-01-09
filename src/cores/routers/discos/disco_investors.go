@@ -59,7 +59,7 @@ func (h *DiscosInvestorsHandler) CreateStartupDiscoInvestor(startupId flake.ID) 
 	}
 
 	var uid flake.ID
-	// h.Ctx.Find(&uid, "uid")
+	h.Ctx.Find(&uid, "uid")
 	if err := discomodels.DiscoInvestors.CreateDiscoInvestor(h.Ctx, startupId, uid, &input); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
