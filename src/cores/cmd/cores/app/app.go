@@ -239,8 +239,7 @@ func (p *appConfig) ConfigRoutes() {
 		s.Router("/exchanges:stats",
 			s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeAllStatsTotal"),
 		s.Router("/startups",
-			//todo 注释一下
-			// s.Filter(filters.LoginRequiredInner),
+			s.Filter(filters.LoginRequiredInner),
 			s.Router("/:id",
 				s.Router("/discos",
 					s.Post(discos.DiscosHandler{}).Action("CreateStartupDisco"),
