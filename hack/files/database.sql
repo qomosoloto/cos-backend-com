@@ -196,6 +196,30 @@ COMMENT ON COLUMN comunion.categories.source IS 'startup';
 
 
 --
+-- Name: discos; Type: TABLE; Schema: comunion; Owner: -
+--
+
+CREATE TABLE comunion.discos (
+    id bigint DEFAULT comunion.id_generator() NOT NULL,
+    startup_id bigint NOT NULL,
+    wallet_addr text NOT NULL,
+    token_addr text NOT NULL,
+    description text NOT NULL,
+    fund_raising_started_at timestamp with time zone NOT NULL,
+    fund_raising_ended_at timestamp with time zone NOT NULL,
+    investment_reward bigint NOT NULL,
+    reward_decline_rate integer NOT NULL,
+    share_token bigint NOT NULL,
+    min_fund_raising bigint NOT NULL,
+    add_liquidity_pool bigint NOT NULL,
+    total_deposit_token bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    state integer DEFAULT 0 NOT NULL
+);
+
+
+--
 -- Name: global_id_sequence; Type: SEQUENCE; Schema: comunion; Owner: -
 --
 
@@ -404,6 +428,14 @@ ALTER TABLE ONLY comunion.bounties
 
 ALTER TABLE ONLY comunion.categories
     ADD CONSTRAINT categories_id_pk PRIMARY KEY (id);
+
+
+--
+-- Name: discos discos_id_pk; Type: CONSTRAINT; Schema: comunion; Owner: -
+--
+
+ALTER TABLE ONLY comunion.discos
+    ADD CONSTRAINT discos_id_pk PRIMARY KEY (id);
 
 
 --
