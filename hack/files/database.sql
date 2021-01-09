@@ -196,6 +196,20 @@ COMMENT ON COLUMN comunion.categories.source IS 'startup';
 
 
 --
+-- Name: disco_investors; Type: TABLE; Schema: comunion; Owner: -
+--
+
+CREATE TABLE comunion.disco_investors (
+    id bigint DEFAULT comunion.id_generator() NOT NULL,
+    disco_id bigint NOT NULL,
+    uid bigint NOT NULL,
+    eth_count bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: discos; Type: TABLE; Schema: comunion; Owner: -
 --
 
@@ -428,6 +442,14 @@ ALTER TABLE ONLY comunion.bounties
 
 ALTER TABLE ONLY comunion.categories
     ADD CONSTRAINT categories_id_pk PRIMARY KEY (id);
+
+
+--
+-- Name: disco_investors disco_investors_id_pk; Type: CONSTRAINT; Schema: comunion; Owner: -
+--
+
+ALTER TABLE ONLY comunion.disco_investors
+    ADD CONSTRAINT disco_investors_id_pk PRIMARY KEY (id);
 
 
 --

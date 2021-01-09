@@ -51,7 +51,7 @@ type CreateDiscosInput struct {
 	MinFundRaising       int64     `json:"minFundRaising" validate:"required"`
 	AddLiquidityPool     int64     `json:"addLiquidityPool" validate:"required"`
 	TotalDepositToken    int       `json:"totalDepositToken" validate:"required"`
-	TxId                 string    `json:"txId"`
+	TxId                 string    `json:"txId" validate:"required"`
 }
 
 // StartupDiscosResult represents an output for 'discos'.

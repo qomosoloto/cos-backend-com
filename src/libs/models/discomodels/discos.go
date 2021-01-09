@@ -81,7 +81,7 @@ func (c *discos) GetDisco(ctx context.Context, startupId flake.ID, output interf
 	})
 }
 
-func (c *discos) ListDisco(ctx context.Context, input *cores.ListDiscosInput, output interface{}) (total int, err error) {
+func (c *discos) ListDisco(ctx context.Context, input *cores.ListDiscosInput, outputs interface{}) (total int, err error) {
 	filterStmt := ""
 	orderStmt := "ORDER BY %v %v"
 	keyword := ""
@@ -152,7 +152,7 @@ func (c *discos) ListDisco(ctx context.Context, input *cores.ListDiscosInput, ou
 			"{discoStateInprogress}":   cores.DiscoStateInProgress,
 		})
 		err = c.Invoke(ctx, func(db dbconn.Q) error {
-			return db.GetContext(ctx, &util.PgJsonScanWrap{output}, query, args...)
+			return db.GetContext(ctx, &util.PgJsonScanWrap{outputs}, query, args...)
 		})
 		return
 	}
