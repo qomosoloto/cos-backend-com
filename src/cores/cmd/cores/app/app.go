@@ -7,11 +7,8 @@ import (
 	"cos-backend-com/src/cores"
 	"cos-backend-com/src/cores/routers/bounties"
 	"cos-backend-com/src/cores/routers/categories"
-<<<<<<< HEAD
-	"cos-backend-com/src/cores/routers/exchanges"
-=======
 	"cos-backend-com/src/cores/routers/discos"
->>>>>>> cn-backend-30 feat:dicos
+	"cos-backend-com/src/cores/routers/exchanges"
 	"cos-backend-com/src/cores/routers/files"
 	"cos-backend-com/src/cores/routers/follows"
 	"cos-backend-com/src/cores/routers/startups"
@@ -238,6 +235,8 @@ func (p *appConfig) ConfigRoutes() {
 		),
 		s.Router("/exchanges:stats",
 			s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeAllStatsTotal"),
+		),
+
 		s.Router("/startups",
 			s.Filter(filters.LoginRequiredInner),
 			s.Router("/:id",
