@@ -553,6 +553,13 @@ CREATE UNIQUE INDEX categories_name ON comunion.categories USING btree (name);
 
 
 --
+-- Name: discos_startup_id_uindex; Type: INDEX; Schema: comunion; Owner: -
+--
+
+CREATE UNIQUE INDEX discos_startup_id_uindex ON comunion.discos USING btree (startup_id);
+
+
+--
 -- Name: hunters_user_id_uindex; Type: INDEX; Schema: comunion; Owner: -
 --
 
