@@ -260,6 +260,9 @@ func (p *appConfig) ConfigRoutes() {
 		s.Router("/discos:statDiscoEthTotal",
 			s.Post(discos.DiscosHandler{}).Action("StatDiscoEthTotal"),
 		),
+		s.Router("/discos:statDiscoTotal",
+			s.Post(discos.DiscosHandler{}).Action("StatDiscoTotal"),
+		),
 	)
 }
 

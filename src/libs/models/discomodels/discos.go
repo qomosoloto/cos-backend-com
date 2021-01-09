@@ -178,6 +178,16 @@ func (c *discos) StatDiscoEthTotal(ctx context.Context, endAt time.Time, output 
 	})
 }
 
+func (c *discos) StatDiscoTotal(ctx context.Context, output interface{}) (err error) {
+	stmt := `
+		SELECT count(*) FROM discos;
+	`
+
+	return c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, stmt)
+	})
+}
+
 func (c *discos) StatDiscoEthIncrease(ctx context.Context, input *cores.StatDiscoEthIncreaseInput, outputs interface{}) (err error) {
 	stmt := `
 		WITH dates AS (
