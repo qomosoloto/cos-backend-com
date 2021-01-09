@@ -10,6 +10,7 @@ import (
 	"cos-backend-com/src/libs/sdk/cores"
 	ethSdk "cos-backend-com/src/libs/sdk/eth"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -157,4 +158,44 @@ func (c *discos) ListDisco(ctx context.Context, input *cores.ListDiscosInput, ou
 		return
 	}
 	return
+}
+
+func (c *discos) StatDiscoEthTotal(ctx context.Context, endAt time.Time, output interface{}) (err error) {
+	stmt := `
+		SELECT sum(di.eth_count)
+		FROM disco_investors di
+		INNER JOIN users u ON di.uid = u.id
+		INNER JOIN discos d ON d.id=di.disco_id
+		WHERE di.created_at <= ${endAt};
+	`
+
+	query, args := util.PgMapQueryV2(stmt, map[string]interface{}{
+		"{endAt}": endAt,
+	})
+
+	return c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
+func (c *discos) StatDiscoEthIncrease(ctx context.Context, input *cores.StatDiscoEthIncreaseInput, outputs interface{}) (err error) {
+	stmt := `
+		WITH dates AS (
+			SELECT * FROM generate_date_series(${timeFrom}::TIMESTAMPTZ, ${timeTO}::TIMESTAMPTZ, ${tz}::TEXT, 'day') date
+		),disco_cte AS (
+			SELECT sum(di.eth_count) count,date_trunc('day',di.created_at) date
+			FROM disco_investors di
+			GROUP BY date
+		)SELECT d.date,coalesce(dc.count,0) count
+		FROM dates d
+		LEFT JOIN disco_cte dc on d.date = dc.date;
+	`
+	query, args := util.PgMapQueryV2(stmt, map[string]interface{}{
+		"{timeFrom}": input.TimeFrom,
+		"{timeTO}":   input.TimeTo,
+		"{tz}":       input.TimeTo,
+	})
+	return c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.SelectContext(ctx, outputs, query, args...)
+	})
 }
