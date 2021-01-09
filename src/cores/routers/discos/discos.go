@@ -134,3 +134,17 @@ func (h *DiscosHandler) StatDiscoEthTotal() (res interface{}) {
 	})
 	return
 }
+
+func (h *DiscosHandler) StatDiscoTotal() (res interface{}) {
+	var totalEthCount int64
+	if err := discomodels.Discos.StatDiscoTotal(h.Ctx, &totalEthCount); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&cores.StatDiscoTotalResult{
+		Count: totalEthCount,
+	})
+	return
+}

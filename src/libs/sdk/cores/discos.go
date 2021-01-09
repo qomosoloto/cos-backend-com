@@ -131,3 +131,7 @@ type StatDiscoEthTotalInput struct {
 type StatDiscoEthTotalResult struct {
 	Count int64 `json:"count" db:"count"`
 }
+
+type StatDiscoTotalResult struct {
+	Count int64 `json:"count" db:"count"`
+}
