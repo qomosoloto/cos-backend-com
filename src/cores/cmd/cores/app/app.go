@@ -253,6 +253,13 @@ func (p *appConfig) ConfigRoutes() {
 		s.Router("/discos",
 			s.Get(discos.DiscosHandler{}).Action("ListDisco"),
 		),
+
+		s.Router("/discos:statDiscoEthIncrease",
+			s.Post(discos.DiscosHandler{}).Action("StatDiscoEthIncrease"),
+		),
+		s.Router("/discos:statDiscoEthTotal",
+			s.Post(discos.DiscosHandler{}).Action("StatDiscoEthTotal"),
+		),
 	)
 }
 

@@ -113,3 +113,21 @@ type ListDiscosResult struct {
 	pagination.ListResult
 	Result []DiscoOutput `json:"result"`
 }
+
+type StatDiscoEthIncreaseInput struct {
+	TimeFrom time.Time `json:"timeFrom" validate:"required"`
+	TimeTo   time.Time `json:"timeTo" validate:"required"`
+}
+
+type StatDiscoEthIncreaseOutput struct {
+	Date  time.Time `json:"date" db:"date"`
+	Count int64     `json:"count" db:"count"`
+}
+
+type StatDiscoEthTotalInput struct {
+	StartupId *flake.ID `json:"startupId" validate:"startup_id"`
+}
+
+type StatDiscoEthTotalResult struct {
+	Count int64 `json:"count" db:"count"`
+}
