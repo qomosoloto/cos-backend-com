@@ -142,7 +142,12 @@ func (h *DiscosHandler) StatDiscoTotal() (res interface{}) {
 		res = apierror.HandleError(err)
 		return
 	}
-	output.Rate = float64(output.IcreaseCount) / float64(output.Count)
+	if output.IcreaseCount > 0 {
+		output.Rate = float64(output.IcreaseCount) / float64(output.Count)
+	} else {
+		output.Rate = 0
+	}
+
 	res = apires.With(&output)
 	return
 }
