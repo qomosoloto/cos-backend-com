@@ -30,6 +30,8 @@ const (
 	TransactionSourceUndertakeBounty TransactionSource = "undertakeBounty"
 	TransactionSourceExchange        TransactionSource = "exchange"
 	TransactionSourceExchangeTx      TransactionSource = "exchangeTransaction"
+	TransactionSourceDisco           TransactionSource = "disco"
+	TransactionSourceDiscoInvestor   TransactionSource = "discoInvestor"
 )
 
 func (t TransactionSource) Validate() bool {

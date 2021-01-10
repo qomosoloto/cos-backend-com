@@ -7,6 +7,7 @@ import (
 	"cos-backend-com/src/cores"
 	"cos-backend-com/src/cores/routers/bounties"
 	"cos-backend-com/src/cores/routers/categories"
+	"cos-backend-com/src/cores/routers/discos"
 	"cos-backend-com/src/cores/routers/exchanges"
 	"cos-backend-com/src/cores/routers/files"
 	"cos-backend-com/src/cores/routers/follows"
@@ -212,7 +213,6 @@ func (p *appConfig) ConfigRoutes() {
 				s.Get(bounties.BountiesHandler{}).Action("ListUserBounties"),
 			),
 		),
-
 		s.Router("/exchanges",
 			s.Get(exchanges.ExchangesHandler{}).Action("ListExchanges"),
 			s.Router("/:id",
@@ -235,6 +235,33 @@ func (p *appConfig) ConfigRoutes() {
 		),
 		s.Router("/exchanges:stats",
 			s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeAllStatsTotal"),
+		),
+
+		s.Router("/startups",
+			s.Router("/:id",
+				s.Router("/discos",
+					s.Post(discos.DiscosHandler{}).Filter(filters.LoginRequiredInner).Action("CreateStartupDisco"),
+					s.Get(discos.DiscosHandler{}).Action("GetStartupDisco"),
+					s.Router("/investors",
+						s.Post(discos.DiscosInvestorsHandler{}).Filter(filters.LoginRequiredInner).Action("CreateStartupDiscoInvestor"),
+						s.Get(discos.DiscosInvestorsHandler{}).Action("ListStartupDiscoInvestor"),
+					),
+				),
+			),
+		),
+
+		s.Router("/discos",
+			s.Get(discos.DiscosHandler{}).Action("ListDisco"),
+		),
+
+		s.Router("/discos:statDiscoEthIncrease",
+			s.Post(discos.DiscosHandler{}).Action("StatDiscoEthIncrease"),
+		),
+		s.Router("/discos:statDiscoEthTotal",
+			s.Post(discos.DiscosHandler{}).Action("StatDiscoEthTotal"),
+		),
+		s.Router("/discos:statDiscoTotal",
+			s.Post(discos.DiscosHandler{}).Action("StatDiscoTotal"),
 		),
 	)
 }
