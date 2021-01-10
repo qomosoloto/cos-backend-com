@@ -133,5 +133,7 @@ type StatDiscoEthTotalResult struct {
 }
 
 type StatDiscoTotalResult struct {
-	Count int64 `json:"count" db:"count"`
+	Count        int64   `json:"count" db:"count"`
+	IcreaseCount int64   `json:"-" db:"increase_count"`
+	Rate         float64 `json:"rate" db:"rate"`
 }

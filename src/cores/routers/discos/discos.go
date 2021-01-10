@@ -136,15 +136,13 @@ func (h *DiscosHandler) StatDiscoEthTotal() (res interface{}) {
 }
 
 func (h *DiscosHandler) StatDiscoTotal() (res interface{}) {
-	var totalEthCount int64
-	if err := discomodels.Discos.StatDiscoTotal(h.Ctx, &totalEthCount); err != nil {
+	var output cores.StatDiscoTotalResult
+	if err := discomodels.Discos.StatDiscoTotal(h.Ctx, &output); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
 		return
 	}
-
-	res = apires.With(&cores.StatDiscoTotalResult{
-		Count: totalEthCount,
-	})
+	output.Rate = float64(output.IcreaseCount) / float64(output.Count)
+	res = apires.With(&output)
 	return
 }
