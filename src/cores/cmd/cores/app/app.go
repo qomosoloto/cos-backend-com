@@ -247,6 +247,9 @@ func (p *appConfig) ConfigRoutes() {
 						s.Get(discos.DiscosInvestorsHandler{}).Action("ListStartupDiscoInvestor"),
 					),
 				),
+				s.Router("/discoSwapState",
+					s.Get(discos.DiscosHandler{}).Action("GetDiscoSwapState"),
+				),
 			),
 		),
 

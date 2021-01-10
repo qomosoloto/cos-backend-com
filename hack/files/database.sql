@@ -234,6 +234,81 @@ CREATE TABLE comunion.discos (
 
 
 --
+-- Name: exchange_transactions; Type: TABLE; Schema: comunion; Owner: -
+--
+
+CREATE TABLE comunion.exchange_transactions (
+    id bigint DEFAULT comunion.id_generator() NOT NULL,
+    tx_id text NOT NULL,
+    exchange_id bigint NOT NULL,
+    account text NOT NULL,
+    type integer NOT NULL,
+    name text DEFAULT ''::text NOT NULL,
+    total_value double precision DEFAULT 0 NOT NULL,
+    token_amount1 double precision DEFAULT 0 NOT NULL,
+    token_amount2 double precision DEFAULT 0 NOT NULL,
+    fee double precision DEFAULT 0 NOT NULL,
+    price_per_token1 double precision DEFAULT 0 NOT NULL,
+    price_per_token2 double precision DEFAULT 0 NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    occured_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: COLUMN exchange_transactions.type; Type: COMMENT; Schema: comunion; Owner: -
+--
+
+COMMENT ON COLUMN comunion.exchange_transactions.type IS '1：增加流动性，2：删除流动性，3：1兑换2，4：2兑换1';
+
+
+--
+-- Name: COLUMN exchange_transactions.status; Type: COMMENT; Schema: comunion; Owner: -
+--
+
+COMMENT ON COLUMN comunion.exchange_transactions.status IS '0：待确认，1：已完成，2：未完成';
+
+
+--
+-- Name: exchanges; Type: TABLE; Schema: comunion; Owner: -
+--
+
+CREATE TABLE comunion.exchanges (
+    id bigint DEFAULT comunion.id_generator() NOT NULL,
+    tx_id text NOT NULL,
+    startup_id bigint NOT NULL,
+    pair_name text,
+    pair_address text,
+    token_name1 text NOT NULL,
+    token_symbol1 text NOT NULL,
+    token_address1 text,
+    token_name2 text NOT NULL,
+    token_symbol2 text NOT NULL,
+    token_address2 text,
+    newest_day text,
+    newest_pooled_tokens1 double precision DEFAULT 0 NOT NULL,
+    newest_pooled_tokens2 double precision DEFAULT 0 NOT NULL,
+    last_day text,
+    last_pooled_tokens1 double precision DEFAULT 0 NOT NULL,
+    last_pooled_tokens2 double precision DEFAULT 0 NOT NULL,
+    price double precision DEFAULT 0 NOT NULL,
+    fees double precision DEFAULT 0 NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: COLUMN exchanges.status; Type: COMMENT; Schema: comunion; Owner: -
+--
+
+COMMENT ON COLUMN comunion.exchanges.status IS '0：待确认，1：已完成，2：未完成';
+
+
+--
 -- Name: global_id_sequence; Type: SEQUENCE; Schema: comunion; Owner: -
 --
 
@@ -461,6 +536,22 @@ ALTER TABLE ONLY comunion.discos
 
 
 --
+-- Name: exchange_transactions exchange_transactions_id_pk; Type: CONSTRAINT; Schema: comunion; Owner: -
+--
+
+ALTER TABLE ONLY comunion.exchange_transactions
+    ADD CONSTRAINT exchange_transactions_id_pk PRIMARY KEY (id);
+
+
+--
+-- Name: exchanges exchanges_id_pk; Type: CONSTRAINT; Schema: comunion; Owner: -
+--
+
+ALTER TABLE ONLY comunion.exchanges
+    ADD CONSTRAINT exchanges_id_pk PRIMARY KEY (id);
+
+
+--
 -- Name: hunters hunters_id_pk; Type: CONSTRAINT; Schema: comunion; Owner: -
 --
 
@@ -579,6 +670,27 @@ CREATE UNIQUE INDEX categories_name ON comunion.categories USING btree (name);
 --
 
 CREATE UNIQUE INDEX discos_startup_id_uindex ON comunion.discos USING btree (startup_id);
+
+
+--
+-- Name: exchange_transactions_tx_id; Type: INDEX; Schema: comunion; Owner: -
+--
+
+CREATE UNIQUE INDEX exchange_transactions_tx_id ON comunion.exchange_transactions USING btree (tx_id);
+
+
+--
+-- Name: exchanges_pair_address; Type: INDEX; Schema: comunion; Owner: -
+--
+
+CREATE UNIQUE INDEX exchanges_pair_address ON comunion.exchanges USING btree (pair_address);
+
+
+--
+-- Name: exchanges_startup_id; Type: INDEX; Schema: comunion; Owner: -
+--
+
+CREATE UNIQUE INDEX exchanges_startup_id ON comunion.exchanges USING btree (startup_id);
 
 
 --
