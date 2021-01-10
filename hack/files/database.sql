@@ -196,6 +196,44 @@ COMMENT ON COLUMN comunion.categories.source IS 'startup';
 
 
 --
+-- Name: disco_investors; Type: TABLE; Schema: comunion; Owner: -
+--
+
+CREATE TABLE comunion.disco_investors (
+    id bigint DEFAULT comunion.id_generator() NOT NULL,
+    disco_id bigint NOT NULL,
+    uid bigint NOT NULL,
+    eth_count bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: discos; Type: TABLE; Schema: comunion; Owner: -
+--
+
+CREATE TABLE comunion.discos (
+    id bigint DEFAULT comunion.id_generator() NOT NULL,
+    startup_id bigint NOT NULL,
+    wallet_addr text NOT NULL,
+    token_addr text NOT NULL,
+    description text NOT NULL,
+    fund_raising_started_at timestamp with time zone NOT NULL,
+    fund_raising_ended_at timestamp with time zone NOT NULL,
+    investment_reward bigint NOT NULL,
+    reward_decline_rate integer NOT NULL,
+    share_token bigint NOT NULL,
+    min_fund_raising bigint NOT NULL,
+    add_liquidity_pool bigint NOT NULL,
+    total_deposit_token bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    state integer DEFAULT 0 NOT NULL
+);
+
+
+--
 -- Name: global_id_sequence; Type: SEQUENCE; Schema: comunion; Owner: -
 --
 
@@ -407,6 +445,22 @@ ALTER TABLE ONLY comunion.categories
 
 
 --
+-- Name: disco_investors disco_investors_id_pk; Type: CONSTRAINT; Schema: comunion; Owner: -
+--
+
+ALTER TABLE ONLY comunion.disco_investors
+    ADD CONSTRAINT disco_investors_id_pk PRIMARY KEY (id);
+
+
+--
+-- Name: discos discos_id_pk; Type: CONSTRAINT; Schema: comunion; Owner: -
+--
+
+ALTER TABLE ONLY comunion.discos
+    ADD CONSTRAINT discos_id_pk PRIMARY KEY (id);
+
+
+--
 -- Name: hunters hunters_id_pk; Type: CONSTRAINT; Schema: comunion; Owner: -
 --
 
@@ -518,6 +572,13 @@ CREATE UNIQUE INDEX categories_code ON comunion.categories USING btree (code);
 --
 
 CREATE UNIQUE INDEX categories_name ON comunion.categories USING btree (name);
+
+
+--
+-- Name: discos_startup_id_uindex; Type: INDEX; Schema: comunion; Owner: -
+--
+
+CREATE UNIQUE INDEX discos_startup_id_uindex ON comunion.discos USING btree (startup_id);
 
 
 --
