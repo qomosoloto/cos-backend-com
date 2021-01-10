@@ -180,7 +180,12 @@ func (c *discos) StatDiscoEthTotal(ctx context.Context, endAt time.Time, output 
 
 func (c *discos) StatDiscoTotal(ctx context.Context, output interface{}) (err error) {
 	stmt := `
-		SELECT count(*) FROM discos;
+		SELECT COUNT(*) count,
+    	COUNT(*) FILTER (
+    	    WHERE created_at <= CURRENT_TIMESTAMP
+    	        AND created_at > DATE_TRUNC('day', CURRENT_TIMESTAMP)
+    	) increase_count
+		FROM discos;
 	`
 
 	return c.Invoke(ctx, func(db dbconn.Q) error {
