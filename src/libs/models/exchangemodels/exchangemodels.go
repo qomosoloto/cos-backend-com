@@ -21,33 +21,55 @@ type exchanges struct {
 
 func (c *exchanges) CreateExchange(ctx context.Context, input *coresSdk.CreateExchangeInput, output *coresSdk.CreateExchangeResult) (err error) {
 	stmt := `
-		INSERT INTO exchanges(tx_id, startup_id, token_name1, token_symbol1, token_address1, token_name2, token_symbol2, status)
-		VALUES (${txId}, ${startupId}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenName2}, ${tokenSymbol2}, ${status})
+		INSERT INTO exchanges(tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_name2, token_symbol2, token_address2, status)
+		VALUES (${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${status})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
 		"{txId}":          input.TxId,
 		"{startupId}":     input.StartupId,
+		"{pairName}":      input.PairName,
+		"{pairAddress}":   input.PairAddress,
 		"{tokenName1}":    input.TokenName1,
 		"{tokenSymbol1}":  input.TokenSymbol1,
 		"{tokenAddress1}": input.TokenAddress1,
 		"{tokenName2}":    input.TokenName2,
 		"{tokenSymbol2}":  input.TokenSymbol2,
+		"{tokenAddress2}": input.TokenAddress2,
 		"{status}":        input.Status,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
-		newCtx := dbconn.WithDB(ctx, db)
-		if er := db.GetContext(newCtx, output, query, args...); er != nil {
-			return er
-		}
-		createTransactionsInput := ethSdk.CreateTransactionsInput{
-			TxId:     input.TxId,
-			Source:   ethSdk.TransactionSourceExchange,
-			SourceId: output.Id,
-		}
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
 
-		return ethmodels.Transactions.Create(newCtx, &createTransactionsInput)
+func (c *exchanges) UpdateExchange(ctx context.Context, input *coresSdk.CreateExchangeInput, output *coresSdk.CreateExchangeResult) (err error) {
+	stmt := `
+		UPDATE exchanges SET (
+			tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_name2, token_symbol2, token_address2, status, updated_at
+		) = (
+			${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${status}, current_timestamp
+		)
+		WHERE startup_id = ${startupId}
+		RETURNING id, status;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{txId}":          input.TxId,
+		"{startupId}":     input.StartupId,
+		"{pairName}":      input.PairName,
+		"{pairAddress}":   input.PairAddress,
+		"{tokenName1}":    input.TokenName1,
+		"{tokenSymbol1}":  input.TokenSymbol1,
+		"{tokenAddress1}": input.TokenAddress1,
+		"{tokenName2}":    input.TokenName2,
+		"{tokenSymbol2}":  input.TokenSymbol2,
+		"{tokenAddress2}": input.TokenAddress2,
+		"{status}":        input.Status,
+	})
+
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
 	})
 }
 
