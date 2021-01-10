@@ -162,7 +162,7 @@ func (c *discos) ListDisco(ctx context.Context, input *cores.ListDiscosInput, ou
 
 func (c *discos) StatDiscoEthTotal(ctx context.Context, endAt time.Time, output interface{}) (err error) {
 	stmt := `
-		SELECT sum(di.eth_count)
+		SELECT coalesce(sum(di.eth_count),0)
 		FROM disco_investors di
 		INNER JOIN users u ON di.uid = u.id
 		INNER JOIN discos d ON d.id=di.disco_id
