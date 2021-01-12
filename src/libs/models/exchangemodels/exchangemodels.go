@@ -191,8 +191,8 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 				SELECT ec.*, v24c.volumes_24hrs volumes_24hrs, COALESCE(etrgc.price_changes, '[]'::json) price_changes
 				FROM exchanges_cte ec
 					LEFT JOIN exchange_tx_rels_group_cte etrgc ON ec.id = etrgc.exchange_id
-					LEFT JOIN volumes_24hrs_cte v24c ON ec.id = v24c.exchange_id` +
-		orderStmt + `
+					LEFT JOIN volumes_24hrs_cte v24c ON ec.id = v24c.exchange_id
+				` + orderStmt + `
 				LIMIT ${limit} OFFSET ${offset}
 			)
 			SELECT COALESCE(json_agg(r.*), '[]'::json) FROM res r;
