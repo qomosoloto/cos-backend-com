@@ -33,8 +33,8 @@ const (
 type ListExchangesOrderBy string
 
 const (
-	ListExchangesOrderByTime         ListExchangesOrderBy = "time"
-	ListExchangesOrderByName         ListExchangesOrderBy = "name"
+	ListExchangesOrderByTime         ListExchangesOrderBy = "createdAt"
+	ListExchangesOrderByName         ListExchangesOrderBy = "startup"
 	ListExchangesOrderByLiquidities  ListExchangesOrderBy = "liquidities"
 	ListExchangesOrderByVolumes24Hrs ListExchangesOrderBy = "volumes24Hrs"
 )
