@@ -214,3 +214,27 @@ func (c *discos) StatDiscoEthIncrease(ctx context.Context, input *cores.StatDisc
 		return db.SelectContext(ctx, outputs, query, args...)
 	})
 }
+
+func (c *discos) GetDiscoSwapState(ctx context.Context, startupId *flake.ID, output interface{}) (err error) {
+	stmt := `
+	SELECT 
+		coalesce((
+			SELECT state
+        	FROM discos
+			WHERE startup_id = ${startupId}
+		),-1) disco_state,
+    	coalesce((
+			SELECT status
+        	FROM exchanges
+			WHERE startup_id = ${startupId}
+		),-1) swap_state;
+	`
+
+	query, args := util.PgMapQueryV2(stmt, map[string]interface{}{
+		"{startupId}": startupId,
+	})
+
+	return c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+}

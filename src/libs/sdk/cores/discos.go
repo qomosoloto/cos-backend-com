@@ -137,3 +137,8 @@ type StatDiscoTotalResult struct {
 	IcreaseCount int64   `json:"-" db:"increase_count"`
 	Rate         float64 `json:"rate" db:"rate"`
 }
+
+type DiscoSwapStateOutput struct {
+	DiscoState int `json:"discoState" db:"disco_state"`
+	SwapState  int `json:"swapState" db:"swap_state"`
+}
