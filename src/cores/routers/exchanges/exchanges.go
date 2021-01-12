@@ -36,6 +36,9 @@ func (h *ExchangesHandler) CreateExchange(startupId flake.ID) (res interface{}) 
 	input.TokenAddress1 = *startup.Setting.TokenAddr
 	input.TokenName2 = "ETH"
 	input.TokenSymbol2 = "ETH"
+	input.TokenAddress2 = ""
+	input.PairName = input.TokenName1 + "-" + input.TokenName2
+	input.PairAddress = ""
 	input.Status = cores.ExchangeStatusPending
 
 	if err := validate.Default.Struct(input); err != nil {

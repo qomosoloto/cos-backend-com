@@ -8,6 +8,7 @@ import (
 	"cos-backend-com/src/libs/models/ethmodels"
 	coresSdk "cos-backend-com/src/libs/sdk/cores"
 	ethSdk "cos-backend-com/src/libs/sdk/eth"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -21,33 +22,55 @@ type exchanges struct {
 
 func (c *exchanges) CreateExchange(ctx context.Context, input *coresSdk.CreateExchangeInput, output *coresSdk.CreateExchangeResult) (err error) {
 	stmt := `
-		INSERT INTO exchanges(tx_id, startup_id, token_name1, token_symbol1, token_address1, token_name2, token_symbol2, status)
-		VALUES (${txId}, ${startupId}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenName2}, ${tokenSymbol2}, ${status})
+		INSERT INTO exchanges(tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_name2, token_symbol2, token_address2, status)
+		VALUES (${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${status})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
 		"{txId}":          input.TxId,
 		"{startupId}":     input.StartupId,
+		"{pairName}":      input.PairName,
+		"{pairAddress}":   input.PairAddress,
 		"{tokenName1}":    input.TokenName1,
 		"{tokenSymbol1}":  input.TokenSymbol1,
 		"{tokenAddress1}": input.TokenAddress1,
 		"{tokenName2}":    input.TokenName2,
 		"{tokenSymbol2}":  input.TokenSymbol2,
+		"{tokenAddress2}": input.TokenAddress2,
 		"{status}":        input.Status,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
-		newCtx := dbconn.WithDB(ctx, db)
-		if er := db.GetContext(newCtx, output, query, args...); er != nil {
-			return er
-		}
-		createTransactionsInput := ethSdk.CreateTransactionsInput{
-			TxId:     input.TxId,
-			Source:   ethSdk.TransactionSourceExchange,
-			SourceId: output.Id,
-		}
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
 
-		return ethmodels.Transactions.Create(newCtx, &createTransactionsInput)
+func (c *exchanges) UpdateExchange(ctx context.Context, input *coresSdk.CreateExchangeInput, output *coresSdk.CreateExchangeResult) (err error) {
+	stmt := `
+		UPDATE exchanges SET (
+			tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_name2, token_symbol2, token_address2, status, updated_at
+		) = (
+			${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${status}, current_timestamp
+		)
+		WHERE startup_id = ${startupId}
+		RETURNING id, status;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{txId}":          input.TxId,
+		"{startupId}":     input.StartupId,
+		"{pairName}":      input.PairName,
+		"{pairAddress}":   input.PairAddress,
+		"{tokenName1}":    input.TokenName1,
+		"{tokenSymbol1}":  input.TokenSymbol1,
+		"{tokenAddress1}": input.TokenAddress1,
+		"{tokenName2}":    input.TokenName2,
+		"{tokenSymbol2}":  input.TokenSymbol2,
+		"{tokenAddress2}": input.TokenAddress2,
+		"{status}":        input.Status,
+	})
+
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
 	})
 }
 
@@ -92,10 +115,33 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 
 func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExchangesInput, outputs interface{}) (total int, err error) {
 	filterStmt := ``
-	var keyword string
+	orderStmt := "ORDER BY %v %v"
+	keyword := ""
 	if input.Keyword != "" {
 		keyword = "%" + util.PgEscapeLike(input.Keyword) + "%"
 		filterStmt += `AND s.name ILIKE ${keyword}`
+	}
+	if input.OrderBy == nil {
+		orderStmt = fmt.Sprintf(orderStmt, "created_at", "DESC")
+	} else {
+		orderField := ""
+		switch *input.OrderBy {
+		case coresSdk.ListExchangesOrderByTime:
+			orderField = "created_at"
+		case coresSdk.ListExchangesOrderByName:
+			orderField = "startup_name"
+		case coresSdk.ListExchangesOrderByLiquidities:
+			orderField = "liquidities"
+		case coresSdk.ListExchangesOrderByVolumes24Hrs:
+			orderField = "volumes_24hrs"
+		}
+		orderSeq := ""
+		if input.IsDesc {
+			orderSeq = "DESC"
+		} else {
+			orderSeq = "ASC"
+		}
+		orderStmt = fmt.Sprintf(orderStmt, orderField, orderSeq)
 	}
 
 	stmt := ` 
@@ -104,18 +150,18 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 				SELECT
 					ex.id,
 					ex.tx_id,
+					s.name startup_name,
 					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
 					ex.price,
 					ex.newest_pooled_tokens2 liquidities,
-					ex.status
+					ex.status,
+					ex.created_at created_at
 				FROM exchanges ex
 					INNER JOIN startups s ON s.id = ex.startup_id
 					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 					INNER JOIN startup_settings ss ON s.id = ss.startup_id
 					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-				WHERE 1=1` + filterStmt + `
-					ORDER BY ex.created_at DESC
-					LIMIT ${limit} OFFSET ${offset}
+				WHERE ex.status = ${ExchangeStatusCompleted}` + filterStmt + `					
 			),
 			volumes_24hrs_cte AS (
 				SELECT et.exchange_id, SUM(et.token_amount2) volumes_24hrs
@@ -142,10 +188,12 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 				GROUP BY etrc.exchange_id
 			),
 			res AS (
-				SELECT ec.*, v24c.volumes_24hrs, COALESCE(etrgc.price_changes, '[]'::json) price_changes
+				SELECT ec.*, v24c.volumes_24hrs volumes_24hrs, COALESCE(etrgc.price_changes, '[]'::json) price_changes
 				FROM exchanges_cte ec
-				LEFT JOIN exchange_tx_rels_group_cte etrgc ON ec.id = etrgc.exchange_id
-				LEFT JOIN volumes_24hrs_cte v24c ON ec.id = v24c.exchange_id
+					LEFT JOIN exchange_tx_rels_group_cte etrgc ON ec.id = etrgc.exchange_id
+					LEFT JOIN volumes_24hrs_cte v24c ON ec.id = v24c.exchange_id
+				` + orderStmt + `
+				LIMIT ${limit} OFFSET ${offset}
 			)
 			SELECT COALESCE(json_agg(r.*), '[]'::json) FROM res r;
 	`
@@ -157,10 +205,11 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 			INNER JOIN startup_settings ss ON s.id = ss.startup_id
 			INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-		WHERE 1=1` + filterStmt
+		WHERE ex.status = ${ExchangeStatusCompleted}` + filterStmt
 
 	query, args := util.PgMapQuery(countStmt, map[string]interface{}{
-		"{keyword}": keyword,
+		"{keyword}":                 keyword,
+		"{ExchangeStatusCompleted}": coresSdk.ExchangeStatusCompleted,
 	})
 
 	if err = c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
@@ -169,12 +218,13 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 		return
 	}
 	query, args = util.PgMapQuery(stmt, map[string]interface{}{
-		"{keyword}":             keyword,
-		"{offset}":              input.Offset,
-		"{limit}":               input.GetLimit(),
-		"{exTxStatusCompleted}": coresSdk.ExchangeTxStatusCompleted,
-		"{swap1for2}":           coresSdk.ExchangeTxTypeSwap1for2,
-		"{swap2for1}":           coresSdk.ExchangeTxTypeSwap2for1,
+		"{keyword}":                 keyword,
+		"{offset}":                  input.Offset,
+		"{limit}":                   input.GetLimit(),
+		"{exTxStatusCompleted}":     coresSdk.ExchangeTxStatusCompleted,
+		"{swap1for2}":               coresSdk.ExchangeTxTypeSwap1for2,
+		"{swap2for1}":               coresSdk.ExchangeTxTypeSwap2for1,
+		"{ExchangeStatusCompleted}": coresSdk.ExchangeStatusCompleted,
 	})
 	return total, c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
 		return db.GetContext(ctx, &util.PgJsonScanWrap{outputs}, query, args...)

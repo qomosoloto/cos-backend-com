@@ -30,6 +30,15 @@ const (
 	ExchangeTxStatusUndone    ExchangeTxStatus = iota
 )
 
+type ListExchangesOrderBy string
+
+const (
+	ListExchangesOrderByTime         ListExchangesOrderBy = "time"
+	ListExchangesOrderByName         ListExchangesOrderBy = "name"
+	ListExchangesOrderByLiquidities  ListExchangesOrderBy = "liquidities"
+	ListExchangesOrderByVolumes24Hrs ListExchangesOrderBy = "volumes24Hrs"
+)
+
 type CreateExchangeInput struct {
 	TxId          string         `json:"txId" validate:"required"`
 	StartupId     flake.ID       `json:"startupId" validate:"required"`
@@ -72,8 +81,10 @@ type ExchangeResult struct {
 }
 
 type ListExchangesInput struct {
-	Keyword string `param:"keyword"`
 	pagination.ListRequest
+	Keyword string                `param:"keyword"`
+	OrderBy *ListExchangesOrderBy `param:"orderBy"`
+	IsDesc  bool                  `param:"isDesc"`
 }
 
 type ListExchangesResult struct {
