@@ -237,6 +237,11 @@ func (p *appConfig) ConfigRoutes() {
 			s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeAllStatsTotal"),
 		),
 
+		s.Router("/swap",
+			s.Router("/pairs",
+				s.Post(exchanges.SwapEventsHandler{}).Action("CreatePair")),
+		),
+
 		s.Router("/startups",
 			s.Router("/:id",
 				s.Router("/discos",

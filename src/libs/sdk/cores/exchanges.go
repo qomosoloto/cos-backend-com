@@ -47,9 +47,11 @@ type CreateExchangeInput struct {
 	TokenName1    string         `json:"tokenName1" validate:"required"`
 	TokenSymbol1  string         `json:"tokenSymbol1" validate:"required"`
 	TokenAddress1 string         `json:"tokenAddress1"`
+	TokenDivider1 int            `json:"tokenDivider1"`
 	TokenName2    string         `json:"tokenName2" validate:"required"`
 	TokenSymbol2  string         `json:"tokenSymbol2" validate:"required"`
 	TokenAddress2 string         `json:"tokenAddress2"`
+	TokenDivider2 int            `json:"tokenDivider2"`
 	Status        ExchangeStatus `json:"status"`
 }
 

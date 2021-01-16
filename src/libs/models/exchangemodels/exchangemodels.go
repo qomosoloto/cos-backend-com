@@ -22,8 +22,10 @@ type exchanges struct {
 
 func (c *exchanges) CreateExchange(ctx context.Context, input *coresSdk.CreateExchangeInput, output *coresSdk.CreateExchangeResult) (err error) {
 	stmt := `
-		INSERT INTO exchanges(tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_name2, token_symbol2, token_address2, status)
-		VALUES (${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${status})
+		INSERT INTO exchanges(tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_divider1, 
+							  token_name2, token_symbol2, token_address2, token_divider2, status)
+		VALUES (${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenDivider1}, 
+				${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${tokenDivider2}, ${status})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
@@ -34,9 +36,11 @@ func (c *exchanges) CreateExchange(ctx context.Context, input *coresSdk.CreateEx
 		"{tokenName1}":    input.TokenName1,
 		"{tokenSymbol1}":  input.TokenSymbol1,
 		"{tokenAddress1}": input.TokenAddress1,
+		"{tokenDivider1}": input.TokenDivider1,
 		"{tokenName2}":    input.TokenName2,
 		"{tokenSymbol2}":  input.TokenSymbol2,
 		"{tokenAddress2}": input.TokenAddress2,
+		"{tokenDivider2}": input.TokenDivider2,
 		"{status}":        input.Status,
 	})
 
@@ -48,9 +52,11 @@ func (c *exchanges) CreateExchange(ctx context.Context, input *coresSdk.CreateEx
 func (c *exchanges) UpdateExchange(ctx context.Context, input *coresSdk.CreateExchangeInput, output *coresSdk.CreateExchangeResult) (err error) {
 	stmt := `
 		UPDATE exchanges SET (
-			tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_name2, token_symbol2, token_address2, status, updated_at
+			tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_divider1, 
+			token_name2, token_symbol2, token_address2, token_divider2, status, updated_at
 		) = (
-			${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${status}, current_timestamp
+			${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenDivider1}, 
+			${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${tokenDivider2}, ${status}, current_timestamp
 		)
 		WHERE startup_id = ${startupId}
 		RETURNING id, status;
@@ -63,9 +69,11 @@ func (c *exchanges) UpdateExchange(ctx context.Context, input *coresSdk.CreateEx
 		"{tokenName1}":    input.TokenName1,
 		"{tokenSymbol1}":  input.TokenSymbol1,
 		"{tokenAddress1}": input.TokenAddress1,
+		"{tokenDivider1}": input.TokenDivider1,
 		"{tokenName2}":    input.TokenName2,
 		"{tokenSymbol2}":  input.TokenSymbol2,
 		"{tokenAddress2}": input.TokenAddress2,
+		"{tokenDivider2}": input.TokenDivider2,
 		"{status}":        input.Status,
 	})
 
