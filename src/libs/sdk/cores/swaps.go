@@ -16,3 +16,12 @@ type CreateSwapPairInput struct {
 	Token0      TokenInput `json:"token0" validate:"required"`
 	Token1      TokenInput `json:"token1" validate:"required"`
 }
+
+type CreateSwapMintInput struct {
+	TxId string `json:"txId" validate:"required"`
+
+	StartupId   flake.ID   `json:"startupId" validate:"required"`
+	PairAddress string     `json:"pairAddress" validate:"required"`
+	Token0      TokenInput `json:"token0" validate:"required"`
+	Token1      TokenInput `json:"token1" validate:"required"`
+}

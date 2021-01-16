@@ -109,7 +109,8 @@ type ListExchangesResult struct {
 type CreateExchangeTxInput struct {
 	TxId           string           `json:"txId" validate:"required"`
 	ExchangeId     flake.ID         `json:"exchangeId" validate:"required"`
-	Account        string           `json:"account" validate:"required"`
+	Sender         string           `json:"sender" validate:"required"`
+	To             string           `json:"to"`
 	Type           ExchangeTxType   `json:"type" validate:"required"`
 	TokenAmount1   float64          `json:"tokenAmount1"`
 	TokenAmount2   float64          `json:"tokenAmount2"`
@@ -132,7 +133,8 @@ type ExchangeTxResult struct {
 	Id             flake.ID         `json:"id" db:"id"`
 	TxId           string           `json:"txId" db:"tx_id"`
 	ExchangeId     flake.ID         `json:"exchangeId" db:"exchange_id"`
-	Account        string           `json:"account" db:"account"`
+	Sender         string           `json:"sender" db:"sender"`
+	To             string           `json:"to" db:"to"`
 	Type           ExchangeTxType   `json:"type" db:"type"`
 	Name           string           `json:"name" db:"name"`
 	TotalValue     float64          `json:"totalValue" db:"total_value"`

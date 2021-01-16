@@ -52,10 +52,12 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 	exchangeinput.StartupId = pairinput.StartupId
 	var exchangeresult cores.ExchangeResult
 	if err := exchangemodels.Exchanges.GetExchange(h.Ctx, &exchangeinput, &exchangeresult); err == nil {
-		if err := exchangemodels.Exchanges.UpdateExchange(h.Ctx, &input, &output); err != nil {
-			h.Log.Warn(err)
-			res = apierror.HandleError(err)
-			return
+		if exchangeresult.Status != cores.ExchangeStatusCompleted {
+			if err := exchangemodels.Exchanges.UpdateExchange(h.Ctx, &input, &output); err != nil {
+				h.Log.Warn(err)
+				res = apierror.HandleError(err)
+				return
+			}
 		}
 	} else {
 		if err := exchangemodels.Exchanges.CreateExchange(h.Ctx, &input, &output); err != nil {
