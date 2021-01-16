@@ -129,7 +129,8 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 		keyword = "%" + util.PgEscapeLike(input.Keyword) + "%"
 		filterStmt += `AND s.name ILIKE ${keyword}`
 	}
-	if input.OrderBy == nil {
+
+	if *input.OrderBy == "" {
 		orderStmt = fmt.Sprintf(orderStmt, "created_at", "DESC")
 	} else {
 		orderField := ""

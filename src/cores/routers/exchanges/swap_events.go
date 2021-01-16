@@ -14,7 +14,7 @@ type SwapEventsHandler struct {
 	routers.Base
 }
 
-func (h *ExchangesHandler) CreatePair() (res interface{}) {
+func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 	var pairinput cores.CreateSwapPairInput
 	if err := h.Params.BindJsonBody(&pairinput); err != nil {
 		h.Log.Warn(err)
