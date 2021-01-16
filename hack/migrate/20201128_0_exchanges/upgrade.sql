@@ -39,7 +39,7 @@ CREATE TABLE exchange_transactions (
     tx_id text NOT NULL,
     exchange_id bigint NOT NULL,
     sender text DEFAULT '' NOT NULL,
-    to text DEFAULT '' NOT NULL,
+    receiver text DEFAULT '' NOT NULL,
     type integer NOT NULL,
     name text DEFAULT '' NOT NULL,
     total_value float DEFAULT 0 NOT NULL,

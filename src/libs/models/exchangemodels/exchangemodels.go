@@ -242,7 +242,7 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 
 func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
 	stmt := `
-		INSERT INTO exchange_transactions(tx_id, exchange_id, sender, to, type, token_amount1, token_amount2, status,
+		INSERT INTO exchange_transactions(tx_id, exchange_id, sender, receiver, type, token_amount1, token_amount2, status,
 										  price_per_token1, price_per_token2)
 		VALUES (${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${tokenAmount1}, ${tokenAmount2}, ${status},
 				${pricePerToken1}, ${pricePerToken2})

@@ -134,7 +134,7 @@ type ExchangeTxResult struct {
 	TxId           string           `json:"txId" db:"tx_id"`
 	ExchangeId     flake.ID         `json:"exchangeId" db:"exchange_id"`
 	Sender         string           `json:"sender" db:"sender"`
-	To             string           `json:"to" db:"to"`
+	To             string           `json:"to" db:"receiver"`
 	Type           ExchangeTxType   `json:"type" db:"type"`
 	Name           string           `json:"name" db:"name"`
 	TotalValue     float64          `json:"totalValue" db:"total_value"`
