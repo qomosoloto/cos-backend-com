@@ -72,6 +72,66 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 
 }
 
+func (h *SwapEventsHandler) Mint() (res interface{}) {
+	var mintinput cores.CreateSwapMintInput
+	if err := h.Params.BindJsonBody(&mintinput); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+	if err := validate.Default.Struct(mintinput); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	var exchangeinput cores.GetExchangeInput
+	exchangeinput.StartupId = mintinput.StartupId
+	var exchangeresult cores.ExchangeResult
+	if err := exchangemodels.Exchanges.GetExchange(h.Ctx, &exchangeinput, &exchangeresult); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	var input cores.CreateExchangeTxInput
+	input.TxId = mintinput.TxId
+	input.ExchangeId = exchangeresult.Id
+	input.Sender = mintinput.Sender
+	input.Type = cores.ExchangeTxTypeAddLiquidity
+	input.Name = "Add " + exchangeresult.TokenSymbol1 + " and " + exchangeresult.TokenSymbol2
+	input.TotalValue = 0
+	input.TokenAmount1 = float64(mintinput.Amount0) / float64(exchangeresult.TokenDivider1)
+	input.TokenAmount2 = float64(mintinput.Amount1) / float64(exchangeresult.TokenDivider2)
+	input.Fee = 0
+	input.PricePerToken1 = input.TokenAmount2 / input.TokenAmount1
+	input.PricePerToken2 = input.TokenAmount1 / input.TokenAmount2
+	input.Status = cores.ExchangeTxStatusCompleted
+
+	var output cores.CreateExchangeTxResult
+	var exchangetxinput cores.GetExchangeTxInput
+	exchangetxinput.TxId = mintinput.TxId
+	var exchangetxoutput cores.ExchangeTxResult
+	if err := exchangemodels.Exchanges.GetExchangeTx(h.Ctx, &exchangetxinput, &exchangetxoutput); err == nil {
+		if exchangetxoutput.Status != cores.ExchangeTxStatusCompleted {
+			if err := exchangemodels.Exchanges.UpdateExchangeTx(h.Ctx, &input, &output); err != nil {
+				h.Log.Warn(err)
+				res = apierror.HandleError(err)
+				return
+			}
+		}
+	} else {
+		if err := exchangemodels.Exchanges.CreateExchangeTx(h.Ctx, &input, &output); err != nil {
+			h.Log.Warn(err)
+			res = apierror.HandleError(err)
+			return
+		}
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}
+
 func power(x int, n int) int {
 	if n == 0 {
 		return 1

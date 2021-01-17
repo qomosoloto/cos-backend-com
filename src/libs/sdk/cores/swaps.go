@@ -18,10 +18,9 @@ type CreateSwapPairInput struct {
 }
 
 type CreateSwapMintInput struct {
-	TxId string `json:"txId" validate:"required"`
-
-	StartupId   flake.ID   `json:"startupId" validate:"required"`
-	PairAddress string     `json:"pairAddress" validate:"required"`
-	Token0      TokenInput `json:"token0" validate:"required"`
-	Token1      TokenInput `json:"token1" validate:"required"`
+	TxId      string   `json:"txId" validate:"required"`
+	StartupId flake.ID `json:"startupId" validate:"required"`
+	Sender    string   `json:"sender" validate:"required"`
+	Amount0   uint64   `json:"amount0" validate:"required"`
+	Amount1   uint64   `json:"amount1" validate:"required"`
 }

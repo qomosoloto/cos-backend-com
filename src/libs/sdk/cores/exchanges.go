@@ -76,10 +76,14 @@ type ExchangeResult struct {
 		TokenSymbol string   `json:"tokenSymbol" db:"token_symbol"`
 		Mission     string   `json:"mission" db:"mission"`
 	} `json:"startup" db:"startup"`
-	PairName    string         `json:"pairName" db:"pair_name"`
-	PairAddress string         `json:"pairAddress" db:"pair_address"`
-	Status      ExchangeStatus `json:"status" db:"status"`
-	FollowCount int            `json:"followCount" db:"follow_count"`
+	PairName      string         `json:"pairName" db:"pair_name"`
+	PairAddress   string         `json:"pairAddress" db:"pair_address"`
+	Status        ExchangeStatus `json:"status" db:"status"`
+	FollowCount   int            `json:"followCount" db:"follow_count"`
+	TokenDivider1 int            `json:"tokenDivider1" db:"token_divider1"`
+	TokenDivider2 int            `json:"tokenDivider2" db:"token_divider2"`
+	TokenSymbol1  string         `json:"tokenSymbol1" db:"token_symbol1"`
+	TokenSymbol2  string         `json:"tokenSymbol2" db:"token_symbol2"`
 }
 
 type ListExchangesInput struct {
@@ -112,8 +116,11 @@ type CreateExchangeTxInput struct {
 	Sender         string           `json:"sender" validate:"required"`
 	To             string           `json:"to"`
 	Type           ExchangeTxType   `json:"type" validate:"required"`
+	Name           string           `json:"name"`
+	TotalValue     float64          `json:"totalValue"`
 	TokenAmount1   float64          `json:"tokenAmount1"`
 	TokenAmount2   float64          `json:"tokenAmount2"`
+	Fee            float64          `json:"fee"`
 	PricePerToken1 float64          `json:"pricePerToken1"`
 	PricePerToken2 float64          `json:"pricePerToken2"`
 	Status         ExchangeTxStatus `json:"status"`

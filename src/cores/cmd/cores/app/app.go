@@ -240,6 +240,8 @@ func (p *appConfig) ConfigRoutes() {
 		s.Router("/swap",
 			s.Router("/pairs",
 				s.Post(exchanges.SwapEventsHandler{}).Action("CreatePair")),
+			s.Router("/mints",
+				s.Post(exchanges.SwapEventsHandler{}).Action("Mint")),
 		),
 
 		s.Router("/startups",

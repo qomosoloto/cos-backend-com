@@ -5,9 +5,7 @@ import (
 	"cos-backend-com/src/common/dbconn"
 	"cos-backend-com/src/common/util"
 	"cos-backend-com/src/libs/models"
-	"cos-backend-com/src/libs/models/ethmodels"
 	coresSdk "cos-backend-com/src/libs/sdk/cores"
-	ethSdk "cos-backend-com/src/libs/sdk/eth"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 )
@@ -101,7 +99,11 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 			ex.pair_name,
 			ex.pair_address,
 			ex.status,
-			(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count
+			(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count,
+			ex.token_divider1,
+			ex.token_divider2,
+			ex.token_symbol1,
+			ex.token_symbol2
 	    FROM exchanges ex
 			INNER JOIN startups s ON s.id = ex.startup_id
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
@@ -242,10 +244,10 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 
 func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
 	stmt := `
-		INSERT INTO exchange_transactions(tx_id, exchange_id, sender, receiver, type, token_amount1, token_amount2, status,
-										  price_per_token1, price_per_token2)
-		VALUES (${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${tokenAmount1}, ${tokenAmount2}, ${status},
-				${pricePerToken1}, ${pricePerToken2})
+		INSERT INTO exchange_transactions(tx_id, exchange_id, sender, receiver, type, name, total_value, token_amount1, token_amount2, 
+										  fee, price_per_token1, price_per_token2, status)
+		VALUES (${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
+				${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
@@ -254,25 +256,50 @@ func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.Create
 		"{sender}":         input.Sender,
 		"{to}":             input.To,
 		"{type}":           input.Type,
+		"{name}":           input.Name,
+		"{totalValue}":     input.TotalValue,
 		"{tokenAmount1}":   input.TokenAmount1,
 		"{tokenAmount2}":   input.TokenAmount2,
-		"{status}":         input.Status,
+		"{fee}":            input.Fee,
 		"{pricePerToken1}": input.PricePerToken1,
 		"{pricePerToken2}": input.PricePerToken2,
+		"{status}":         input.Status,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
-		newCtx := dbconn.WithDB(ctx, db)
-		if er := db.GetContext(newCtx, output, query, args...); er != nil {
-			return er
-		}
-		createTransactionsInput := ethSdk.CreateTransactionsInput{
-			TxId:     input.TxId,
-			Source:   ethSdk.TransactionSourceExchangeTx,
-			SourceId: output.Id,
-		}
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
 
-		return ethmodels.Transactions.Create(newCtx, &createTransactionsInput)
+func (c *exchanges) UpdateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
+	stmt := `
+		UPDATE exchange_transactions SET (
+			tx_id, exchange_id, sender, receiver, type, name, total_value, token_amount1, token_amount2, 
+			fee, price_per_token1, price_per_token2, status
+		) =  (
+			${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
+			${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status}
+		)
+		RETURNING id, status;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{txId}":           input.TxId,
+		"{exchangeId}":     input.ExchangeId,
+		"{sender}":         input.Sender,
+		"{to}":             input.To,
+		"{type}":           input.Type,
+		"{name}":           input.Name,
+		"{totalValue}":     input.TotalValue,
+		"{tokenAmount1}":   input.TokenAmount1,
+		"{tokenAmount2}":   input.TokenAmount2,
+		"{fee}":            input.Fee,
+		"{pricePerToken1}": input.PricePerToken1,
+		"{pricePerToken2}": input.PricePerToken2,
+		"{status}":         input.Status,
+	})
+
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
 	})
 }
 
