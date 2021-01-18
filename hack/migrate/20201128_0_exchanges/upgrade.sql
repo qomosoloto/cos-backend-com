@@ -45,6 +45,8 @@ CREATE TABLE exchange_transactions (
     total_value float DEFAULT 0 NOT NULL,
     token_amount1 float DEFAULT 0 NOT NULL,
     token_amount2 float DEFAULT 0 NOT NULL,
+    amount0 text DEFAULT '' NOT NULL,
+    amount1 text DEFAULT '' NOT NULL,
     fee float DEFAULT 0 NOT NULL,
     price_per_token1 float DEFAULT 0 NOT NULL,
     price_per_token2 float DEFAULT 0 NOT NULL,

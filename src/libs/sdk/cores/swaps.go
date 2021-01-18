@@ -21,6 +21,6 @@ type CreateSwapMintInput struct {
 	TxId      string   `json:"txId" validate:"required"`
 	StartupId flake.ID `json:"startupId" validate:"required"`
 	Sender    string   `json:"sender" validate:"required"`
-	Amount0   uint64   `json:"amount0" validate:"required"`
-	Amount1   uint64   `json:"amount1" validate:"required"`
+	Amount0   string   `json:"amount0" validate:"required"`
+	Amount1   string   `json:"amount1" validate:"required"`
 }

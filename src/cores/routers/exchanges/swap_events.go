@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/shopspring/decimal"
 	"github.com/wujiu2020/strip/utils/apires"
-	"math"
 	"net/http"
 	"strconv"
 )
@@ -105,31 +104,24 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 	input.Type = cores.ExchangeTxTypeAddLiquidity
 	input.Name = "Add " + exchangeresult.TokenSymbol1 + " and " + exchangeresult.TokenSymbol2
 	input.TotalValue = 0
-	input.TokenAmount1 = 10124504517.37366977 / math.Pow10(8)
-	//fmt.Printf("pi=%s\n", strconv.FormatUint(mintinput.Amount0,10))
-	//fmt.Printf("%.10f\n",mintinput.Amount0)
-	//fmt.Printf("input.TokenAmount1=%.20f\n",input.TokenAmount1)
-	//fmt.Println(mintinput.Amount0)
-	//fmt.Println(float64(mintinput.Amount0))
-	input.TokenAmount2 = float64(mintinput.Amount1) / float64(exchangeresult.TokenDivider2)
-	fmt.Printf("input.TokenAmount2=%.10f\n", input.TokenAmount2)
-	input.Fee = 0
-
-	amount1Str := strconv.FormatUint(mintinput.Amount0, 10)
-	amount1, _ := decimal.NewFromString(amount1Str)
-	amount2Str := strconv.FormatUint(mintinput.Amount1, 10)
-	amount2, _ := decimal.NewFromString(amount2Str)
+	input.Amount0 = mintinput.Amount0
+	input.Amount1 = mintinput.Amount1
+	amount1, _ := decimal.NewFromString(input.Amount0)
 	divider1Str := strconv.Itoa(exchangeresult.TokenDivider1)
 	divider1, _ := decimal.NewFromString(divider1Str)
-	a1 := amount1.Div(divider1)
-	input.TokenAmount1, _ = a1.Float64()
-	fmt.Println("a1=", a1)
-	fmt.Println("input.TokenAmount1=", input.TokenAmount1)
-	fmt.Println("mint.amount0=", mintinput.Amount0)
+	input.TokenAmount1, _ = amount1.Div(divider1).Float64()
+	amount2, _ := decimal.NewFromString(input.Amount1)
+	divider2Str := strconv.Itoa(exchangeresult.TokenDivider2)
+	divider2, _ := decimal.NewFromString(divider2Str)
+	input.TokenAmount2, _ = amount2.Div(divider2).Float64()
+	fmt.Println("amount0=", input.Amount0)
 	fmt.Println("amount1=", amount1)
+	fmt.Println("input.TokenAmount1=", input.TokenAmount1)
+	fmt.Println("amount1=", input.Amount1)
 	fmt.Println("amount2=", amount2)
-
-	//input.PricePerToken1 = amount2 / amount1
+	fmt.Println("input.TokenAmount2=", input.TokenAmount2)
+	input.Fee = 0
+	input.PricePerToken1 = input.TokenAmount2 / input.TokenAmount1
 	input.PricePerToken2 = input.TokenAmount1 / input.TokenAmount2
 	input.Status = cores.ExchangeTxStatusCompleted
 

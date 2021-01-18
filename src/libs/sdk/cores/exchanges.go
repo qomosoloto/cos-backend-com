@@ -120,6 +120,8 @@ type CreateExchangeTxInput struct {
 	TotalValue     float64          `json:"totalValue"`
 	TokenAmount1   float64          `json:"tokenAmount1"`
 	TokenAmount2   float64          `json:"tokenAmount2"`
+	Amount0        string           `json:"amount0"`
+	Amount1        string           `json:"amount1"`
 	Fee            float64          `json:"fee"`
 	PricePerToken1 float64          `json:"pricePerToken1"`
 	PricePerToken2 float64          `json:"pricePerToken2"`

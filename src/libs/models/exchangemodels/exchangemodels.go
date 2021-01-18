@@ -245,9 +245,9 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
 	stmt := `
 		INSERT INTO exchange_transactions(tx_id, exchange_id, sender, receiver, type, name, total_value, token_amount1, token_amount2, 
-										  fee, price_per_token1, price_per_token2, status)
+										  amount0, amount1, fee, price_per_token1, price_per_token2, status)
 		VALUES (${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
-				${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status})
+				${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
@@ -260,6 +260,8 @@ func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.Create
 		"{totalValue}":     input.TotalValue,
 		"{tokenAmount1}":   input.TokenAmount1,
 		"{tokenAmount2}":   input.TokenAmount2,
+		"{amount0}":        input.Amount0,
+		"{amount1}":        input.Amount1,
 		"{fee}":            input.Fee,
 		"{pricePerToken1}": input.PricePerToken1,
 		"{pricePerToken2}": input.PricePerToken2,
@@ -275,10 +277,10 @@ func (c *exchanges) UpdateExchangeTx(ctx context.Context, input *coresSdk.Create
 	stmt := `
 		UPDATE exchange_transactions SET (
 			tx_id, exchange_id, sender, receiver, type, name, total_value, token_amount1, token_amount2, 
-			fee, price_per_token1, price_per_token2, status
+			amount0, amount1, fee, price_per_token1, price_per_token2, status
 		) =  (
 			${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
-			${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status}
+			${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status}
 		)
 		WHERE tx_id = ${txId}
 		RETURNING id, status;
@@ -293,6 +295,8 @@ func (c *exchanges) UpdateExchangeTx(ctx context.Context, input *coresSdk.Create
 		"{totalValue}":     input.TotalValue,
 		"{tokenAmount1}":   input.TokenAmount1,
 		"{tokenAmount2}":   input.TokenAmount2,
+		"{amount0}":        input.Amount0,
+		"{amount1}":        input.Amount1,
 		"{fee}":            input.Fee,
 		"{pricePerToken1}": input.PricePerToken1,
 		"{pricePerToken2}": input.PricePerToken2,
