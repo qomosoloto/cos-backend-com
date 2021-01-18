@@ -280,6 +280,7 @@ func (c *exchanges) UpdateExchangeTx(ctx context.Context, input *coresSdk.Create
 			${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
 			${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status}
 		)
+		WHERE tx_id = ${txId}
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
