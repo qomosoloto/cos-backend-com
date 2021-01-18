@@ -6,7 +6,6 @@ import (
 	"cos-backend-com/src/libs/apierror"
 	"cos-backend-com/src/libs/models/exchangemodels"
 	"cos-backend-com/src/libs/sdk/cores"
-	"fmt"
 	"github.com/shopspring/decimal"
 	"github.com/wujiu2020/strip/utils/apires"
 	"net/http"
@@ -114,12 +113,6 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 	divider2Str := strconv.Itoa(exchangeresult.TokenDivider2)
 	divider2, _ := decimal.NewFromString(divider2Str)
 	input.TokenAmount2, _ = amount2.Div(divider2).Float64()
-	fmt.Println("amount0=", input.Amount0)
-	fmt.Println("amount1=", amount1)
-	fmt.Println("input.TokenAmount1=", input.TokenAmount1)
-	fmt.Println("amount1=", input.Amount1)
-	fmt.Println("amount2=", amount2)
-	fmt.Println("input.TokenAmount2=", input.TokenAmount2)
 	input.Fee = 0
 	input.PricePerToken1 = input.TokenAmount2 / input.TokenAmount1
 	input.PricePerToken2 = input.TokenAmount1 / input.TokenAmount2
@@ -130,9 +123,10 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 	exchangetxinput.TxId = mintinput.TxId
 	var exchangetxoutput cores.ExchangeTxResult
 	if err := exchangemodels.Exchanges.GetExchangeTx(h.Ctx, &exchangetxinput, &exchangetxoutput); err == nil {
-		fmt.Println("tx existed")
-		if exchangetxoutput.Status != cores.ExchangeTxStatusCompleted {
-			fmt.Println("tx status not completed update")
+		if exchangetxoutput.Status == cores.ExchangeTxStatusCompleted {
+			output.Id = exchangetxoutput.Id
+			output.Status = exchangetxoutput.Status
+		} else {
 			if err := exchangemodels.Exchanges.UpdateExchangeTx(h.Ctx, &input, &output); err != nil {
 				h.Log.Warn(err)
 				res = apierror.HandleError(err)
@@ -140,7 +134,6 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 			}
 		}
 	} else {
-		fmt.Println("tx new create")
 		if err := exchangemodels.Exchanges.CreateExchangeTx(h.Ctx, &input, &output); err != nil {
 			h.Log.Warn(err)
 			res = apierror.HandleError(err)
