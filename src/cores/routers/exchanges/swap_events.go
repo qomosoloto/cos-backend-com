@@ -119,29 +119,30 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 	input.Status = cores.ExchangeTxStatusCompleted
 
 	var output cores.CreateExchangeTxResult
+	if err := InputExchangeTx(h, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}
+
+func InputExchangeTx(h *SwapEventsHandler, input *cores.CreateExchangeTxInput, output *cores.CreateExchangeTxResult) (err error) {
 	var exchangetxinput cores.GetExchangeTxInput
-	exchangetxinput.TxId = mintinput.TxId
+	exchangetxinput.TxId = input.TxId
 	var exchangetxoutput cores.ExchangeTxResult
-	if err := exchangemodels.Exchanges.GetExchangeTx(h.Ctx, &exchangetxinput, &exchangetxoutput); err == nil {
+	if err = exchangemodels.Exchanges.GetExchangeTx(h.Ctx, &exchangetxinput, &exchangetxoutput); err == nil {
 		if exchangetxoutput.Status == cores.ExchangeTxStatusCompleted {
 			output.Id = exchangetxoutput.Id
 			output.Status = exchangetxoutput.Status
 		} else {
-			if err := exchangemodels.Exchanges.UpdateExchangeTx(h.Ctx, &input, &output); err != nil {
-				h.Log.Warn(err)
-				res = apierror.HandleError(err)
-				return
-			}
+			err = exchangemodels.Exchanges.UpdateExchangeTx(h.Ctx, input, output)
 		}
 	} else {
-		if err := exchangemodels.Exchanges.CreateExchangeTx(h.Ctx, &input, &output); err != nil {
-			h.Log.Warn(err)
-			res = apierror.HandleError(err)
-			return
-		}
+		err = exchangemodels.Exchanges.CreateExchangeTx(h.Ctx, input, output)
 	}
-
-	res = apires.With(&output, http.StatusOK)
 	return
 }
 
