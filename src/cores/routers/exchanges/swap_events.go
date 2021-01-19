@@ -86,36 +86,13 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 		res = apierror.HandleError(err)
 		return
 	}
-
-	var exchangeinput cores.GetExchangeInput
-	exchangeinput.StartupId = mintinput.StartupId
-	var exchangeresult cores.ExchangeResult
-	if err := exchangemodels.Exchanges.GetExchange(h.Ctx, &exchangeinput, &exchangeresult); err != nil {
-		h.Log.Warn(err)
-		res = apierror.HandleError(err)
-		return
-	}
-
 	var input cores.CreateExchangeTxInput
 	input.TxId = mintinput.TxId
-	input.ExchangeId = exchangeresult.Id
+	input.StartupId = mintinput.StartupId
 	input.Sender = mintinput.Sender
-	input.Type = cores.ExchangeTxTypeAddLiquidity
-	input.Name = "Add " + exchangeresult.TokenSymbol1 + " and " + exchangeresult.TokenSymbol2
-	input.TotalValue = 0
 	input.Amount0 = mintinput.Amount0
 	input.Amount1 = mintinput.Amount1
-	amount1, _ := decimal.NewFromString(input.Amount0)
-	divider1Str := strconv.Itoa(exchangeresult.TokenDivider1)
-	divider1, _ := decimal.NewFromString(divider1Str)
-	input.TokenAmount1, _ = amount1.Div(divider1).Float64()
-	amount2, _ := decimal.NewFromString(input.Amount1)
-	divider2Str := strconv.Itoa(exchangeresult.TokenDivider2)
-	divider2, _ := decimal.NewFromString(divider2Str)
-	input.TokenAmount2, _ = amount2.Div(divider2).Float64()
-	input.Fee = 0
-	input.PricePerToken1 = input.TokenAmount2 / input.TokenAmount1
-	input.PricePerToken2 = input.TokenAmount1 / input.TokenAmount2
+	input.Type = cores.ExchangeTxTypeAddLiquidity
 	input.Status = cores.ExchangeTxStatusCompleted
 
 	var output cores.CreateExchangeTxResult
@@ -130,6 +107,38 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 }
 
 func InputExchangeTx(h *SwapEventsHandler, input *cores.CreateExchangeTxInput, output *cores.CreateExchangeTxResult) (err error) {
+	var exchangeinput cores.GetExchangeInput
+	exchangeinput.StartupId = input.StartupId
+	var exchangeresult cores.ExchangeResult
+	if err = exchangemodels.Exchanges.GetExchange(h.Ctx, &exchangeinput, &exchangeresult); err != nil {
+		return
+	}
+	input.ExchangeId = exchangeresult.Id
+
+	switch input.Type {
+	case cores.ExchangeTxTypeAddLiquidity:
+		input.Name = "Add " + exchangeresult.TokenSymbol1 + " and " + exchangeresult.TokenSymbol2
+	case cores.ExchangeTxTypeRemoveLiquidity:
+		input.Name = "Remove " + exchangeresult.TokenSymbol1 + " and " + exchangeresult.TokenSymbol2
+	case cores.ExchangeTxTypeSwap1for2:
+		input.Name = "Swap " + exchangeresult.TokenSymbol1 + " for " + exchangeresult.TokenSymbol2
+	case cores.ExchangeTxTypeSwap2for1:
+		input.Name = "Swap " + exchangeresult.TokenSymbol2 + " for " + exchangeresult.TokenSymbol1
+	}
+
+	input.TotalValue = 0
+	amount1, _ := decimal.NewFromString(input.Amount0)
+	divider1Str := strconv.Itoa(exchangeresult.TokenDivider1)
+	divider1, _ := decimal.NewFromString(divider1Str)
+	input.TokenAmount1, _ = amount1.Div(divider1).Float64()
+	amount2, _ := decimal.NewFromString(input.Amount1)
+	divider2Str := strconv.Itoa(exchangeresult.TokenDivider2)
+	divider2, _ := decimal.NewFromString(divider2Str)
+	input.TokenAmount2, _ = amount2.Div(divider2).Float64()
+	input.Fee = 0
+	input.PricePerToken1 = input.TokenAmount2 / input.TokenAmount1
+	input.PricePerToken2 = input.TokenAmount1 / input.TokenAmount2
+
 	var exchangetxinput cores.GetExchangeTxInput
 	exchangetxinput.TxId = input.TxId
 	var exchangetxoutput cores.ExchangeTxResult

@@ -112,6 +112,7 @@ type ListExchangesResult struct {
 
 type CreateExchangeTxInput struct {
 	TxId           string           `json:"txId" validate:"required"`
+	StartupId      flake.ID         `json:"startupId"`
 	ExchangeId     flake.ID         `json:"exchangeId" validate:"required"`
 	Sender         string           `json:"sender" validate:"required"`
 	To             string           `json:"to"`
