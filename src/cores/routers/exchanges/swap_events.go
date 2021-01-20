@@ -139,6 +139,45 @@ func (h *SwapEventsHandler) Burn() (res interface{}) {
 	return
 }
 
+func (h *SwapEventsHandler) Swap() (res interface{}) {
+	var swapinput cores.SwapSwapInput
+	if err := h.Params.BindJsonBody(&swapinput); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+	if err := validate.Default.Struct(swapinput); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+	var input cores.CreateExchangeTxInput
+	input.TxId = swapinput.TxId
+	input.StartupId = swapinput.StartupId
+	input.Sender = swapinput.Sender
+	if swapinput.Amount0In != "0" {
+		input.Amount0 = swapinput.Amount0In
+		input.Amount1 = swapinput.Amount1Out
+		input.Type = cores.ExchangeTxTypeSwap1for2
+	} else if swapinput.Amount1In != "0" {
+		input.Amount0 = swapinput.Amount0Out
+		input.Amount1 = swapinput.Amount1In
+		input.Type = cores.ExchangeTxTypeSwap2for1
+	}
+	input.To = swapinput.To
+	input.Status = cores.ExchangeTxStatusCompleted
+
+	var output cores.CreateExchangeTxResult
+	if err := InputExchangeTx(h, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}
+
 func InputExchangeTx(h *SwapEventsHandler, input *cores.CreateExchangeTxInput, output *cores.CreateExchangeTxResult) (err error) {
 	var exchangeinput cores.GetExchangeInput
 	exchangeinput.StartupId = input.StartupId
