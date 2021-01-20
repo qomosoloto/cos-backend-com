@@ -17,7 +17,7 @@ type SwapEventsHandler struct {
 }
 
 func (h *SwapEventsHandler) CreatePair() (res interface{}) {
-	var pairinput cores.CreateSwapPairInput
+	var pairinput cores.SwapPairCreatedInput
 	if err := h.Params.BindJsonBody(&pairinput); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
@@ -75,7 +75,7 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 }
 
 func (h *SwapEventsHandler) Mint() (res interface{}) {
-	var mintinput cores.CreateSwapMintInput
+	var mintinput cores.SwapMintInput
 	if err := h.Params.BindJsonBody(&mintinput); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
@@ -93,6 +93,39 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 	input.Amount0 = mintinput.Amount0
 	input.Amount1 = mintinput.Amount1
 	input.Type = cores.ExchangeTxTypeAddLiquidity
+	input.Status = cores.ExchangeTxStatusCompleted
+
+	var output cores.CreateExchangeTxResult
+	if err := InputExchangeTx(h, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+}
+
+func (h *SwapEventsHandler) Burn() (res interface{}) {
+	var burninput cores.SwapBurnInput
+	if err := h.Params.BindJsonBody(&burninput); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+	if err := validate.Default.Struct(burninput); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+	var input cores.CreateExchangeTxInput
+	input.TxId = burninput.TxId
+	input.StartupId = burninput.StartupId
+	input.Sender = burninput.Sender
+	input.Amount0 = burninput.Amount0
+	input.Amount1 = burninput.Amount1
+	input.To = burninput.To
+	input.Type = cores.ExchangeTxTypeRemoveLiquidity
 	input.Status = cores.ExchangeTxStatusCompleted
 
 	var output cores.CreateExchangeTxResult

@@ -9,7 +9,7 @@ type TokenInput struct {
 	Address  string `json:"address" validate:"required"`
 }
 
-type CreateSwapPairInput struct {
+type SwapPairCreatedInput struct {
 	TxId        string     `json:"txId" validate:"required"`
 	StartupId   flake.ID   `json:"startupId" validate:"required"`
 	PairAddress string     `json:"pairAddress" validate:"required"`
@@ -17,10 +17,37 @@ type CreateSwapPairInput struct {
 	Token1      TokenInput `json:"token1" validate:"required"`
 }
 
-type CreateSwapMintInput struct {
+type SwapMintInput struct {
 	TxId      string   `json:"txId" validate:"required"`
 	StartupId flake.ID `json:"startupId" validate:"required"`
 	Sender    string   `json:"sender" validate:"required"`
 	Amount0   string   `json:"amount0" validate:"required"`
 	Amount1   string   `json:"amount1" validate:"required"`
+}
+
+type SwapBurnInput struct {
+	TxId      string   `json:"txId" validate:"required"`
+	StartupId flake.ID `json:"startupId" validate:"required"`
+	Sender    string   `json:"sender" validate:"required"`
+	Amount0   string   `json:"amount0" validate:"required"`
+	Amount1   string   `json:"amount1" validate:"required"`
+	To        string   `json:"to" validate:"required"`
+}
+
+type SwapSwapInput struct {
+	TxId       string   `json:"txId" validate:"required"`
+	StartupId  flake.ID `json:"startupId" validate:"required"`
+	Sender     string   `json:"sender" validate:"required"`
+	Amount0In  string   `json:"amount0In" validate:"required"`
+	Amount1In  string   `json:"amount1In" validate:"required"`
+	Amount0Out string   `json:"amount0Out" validate:"required"`
+	Amount1Out string   `json:"amount1Out" validate:"required"`
+	To         string   `json:"to" validate:"required"`
+}
+
+type SwapSyncInput struct {
+	TxId      string   `json:"txId" validate:"required"`
+	StartupId flake.ID `json:"startupId" validate:"required"`
+	Reserve0  string   `json:"reserve0" validate:"required"`
+	Reserve1  string   `json:"reserve1" validate:"required"`
 }
