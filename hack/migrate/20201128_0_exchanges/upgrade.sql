@@ -22,6 +22,8 @@ CREATE TABLE exchanges (
     last_pooled_tokens2 float DEFAULT 0 NOT NULL,
     price float DEFAULT 0 NOT NULL,
     fees float DEFAULT 0 NOT NULL,
+    reserve0 text DEFAULT '' NOT NULL,
+    reserve1 text DEFAULT '' NOT NULL,
     status integer DEFAULT 0 NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL

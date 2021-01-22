@@ -46,8 +46,8 @@ type SwapSwapInput struct {
 }
 
 type SwapSyncInput struct {
-	TxId      string   `json:"txId" validate:"required"`
 	StartupId flake.ID `json:"startupId" validate:"required"`
 	Reserve0  string   `json:"reserve0" validate:"required"`
 	Reserve1  string   `json:"reserve1" validate:"required"`
+	OccuredAt string   `json:"occuredAt" validate:"required"`
 }

@@ -80,6 +80,27 @@ func (c *exchanges) UpdateExchange(ctx context.Context, input *coresSdk.CreateEx
 	})
 }
 
+func (c *exchanges) UpdateBalance(ctx context.Context, input *coresSdk.ExchangeBalanceInput, output *coresSdk.CreateExchangeResult) (err error) {
+	stmt := `
+		UPDATE exchanges SET (
+			reserve0, reserve1
+		) = (
+			${reserve0}, ${reserve1}
+		)
+		WHERE startup_id = ${startupId}
+		RETURNING id, status;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{startupId}": input.StartupId,
+		"{reserve0}":  input.Reserve0,
+		"{reserve1}":  input.Reserve1,
+	})
+
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
 func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchangeInput, output *coresSdk.ExchangeResult) (err error) {
 	where := ""
 	if input.Id != 0 {

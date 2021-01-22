@@ -71,7 +71,49 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 
 	res = apires.With(&output, http.StatusOK)
 	return
+}
 
+func (h *SwapEventsHandler) Sync() (res interface{}) {
+	var syncinput cores.SwapSyncInput
+	if err := h.Params.BindJsonBody(&syncinput); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+	if err := validate.Default.Struct(syncinput); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	var input cores.ExchangeBalanceInput
+	input.StartupId = syncinput.StartupId
+	input.Reserve0 = syncinput.Reserve0
+	input.Reserve1 = syncinput.Reserve1
+	if err := validate.Default.Struct(input); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	var output cores.CreateExchangeResult
+	var exchangeinput cores.GetExchangeInput
+	exchangeinput.StartupId = input.StartupId
+	var exchangeresult cores.ExchangeResult
+	if err := exchangemodels.Exchanges.GetExchange(h.Ctx, &exchangeinput, &exchangeresult); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	if err := exchangemodels.Exchanges.UpdateBalance(h.Ctx, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
 }
 
 func (h *SwapEventsHandler) Mint() (res interface{}) {

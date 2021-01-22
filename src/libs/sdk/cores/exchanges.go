@@ -188,3 +188,9 @@ type ExchangeOneStatsPriceChangeResult struct {
 		EndPrice   float64 `json:"endPrice" db:"end_price"`
 	} `json:"priceChanges" db:"price_changes"`
 }
+
+type ExchangeBalanceInput struct {
+	StartupId flake.ID `json:"startupId" validate:"required"`
+	Reserve0  string   `json:"reserve0" validate:"required"`
+	Reserve1  string   `json:"reserve1" validate:"required"`
+}
