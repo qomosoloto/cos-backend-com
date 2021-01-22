@@ -190,7 +190,26 @@ type ExchangeOneStatsPriceChangeResult struct {
 }
 
 type ExchangeBalanceInput struct {
-	StartupId flake.ID `json:"startupId" validate:"required"`
-	Reserve0  string   `json:"reserve0" validate:"required"`
-	Reserve1  string   `json:"reserve1" validate:"required"`
+	StartupId           flake.ID `json:"startupId" validate:"required"`
+	NewestDay           string   `json:"newestDay"`
+	NewestPooledTokens1 float64  `json:"newestPooledTokens1"`
+	NewestPooledTokens2 float64  `json:"newestPooledTokens2"`
+	LastDay             string   `json:"lastDay"`
+	LastPooledTokens1   float64  `json:"lastPooledTokens1"`
+	LastPooledTokens2   float64  `json:"lastPooledTokens2"`
+	Reserve0            string   `json:"reserve0" validate:"required"`
+	Reserve1            string   `json:"reserve1" validate:"required"`
+}
+
+type ExchangeBalanceResult struct {
+	TokenDivider1       int     `json:"tokenDivider1" db:"token_divider1"`
+	TokenDivider2       int     `json:"tokenDivider2" db:"token_divider2"`
+	NewestDay           string  `json:"newestDay" db:"newest_day"`
+	NewestPooledTokens1 float64 `json:"newestPooledTokens1" db:"newest_pooled_tokens1"`
+	NewestPooledTokens2 float64 `json:"newestPooledTokens2" db:"newest_pooled_tokens2"`
+	LastDay             string  `json:"lastDay" db:"last_day"`
+	LastPooledTokens1   float64 `json:"lastPooledTokens1" db:"last_pooled_tokens1"`
+	LastPooledTokens2   float64 `json:"lastPooledTokens2" db:"last_pooled_tokens2"`
+	Reserve0            string  `json:"reserve0" db:"reserve0"`
+	Reserve1            string  `json:"reserve1" db:"reserve1"`
 }

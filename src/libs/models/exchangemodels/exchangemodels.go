@@ -83,17 +83,23 @@ func (c *exchanges) UpdateExchange(ctx context.Context, input *coresSdk.CreateEx
 func (c *exchanges) UpdateBalance(ctx context.Context, input *coresSdk.ExchangeBalanceInput, output *coresSdk.CreateExchangeResult) (err error) {
 	stmt := `
 		UPDATE exchanges SET (
-			reserve0, reserve1
+			newest_day, newest_pooled_tokens1, newest_pooled_tokens2, last_day, last_pooled_tokens1, last_pooled_tokens2, reserve0, reserve1
 		) = (
-			${reserve0}, ${reserve1}
+			${newestDay}, ${newestPooledTokens1}, ${newestPooledTokens2}, ${lastDay}, ${lastPooledTokens1}, ${lastPooledTokens2}, ${reserve0}, ${reserve1}
 		)
 		WHERE startup_id = ${startupId}
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
-		"{startupId}": input.StartupId,
-		"{reserve0}":  input.Reserve0,
-		"{reserve1}":  input.Reserve1,
+		"{startupId}":           input.StartupId,
+		"{newestDay}":           input.NewestDay,
+		"{newestPooledTokens1}": input.NewestPooledTokens1,
+		"{newestPooledTokens2}": input.NewestPooledTokens2,
+		"{lastDay}":             input.LastDay,
+		"{lastPooledTokens1}":   input.LastPooledTokens1,
+		"{lastPooledTokens2}":   input.LastPooledTokens2,
+		"{reserve0}":            input.Reserve0,
+		"{reserve1}":            input.Reserve1,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
@@ -142,6 +148,31 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
 		return db.GetContext(ctx, &util.PgJsonScanWrap{output}, query, args...)
 	})
+}
+
+func (c *exchanges) GetBalance(ctx context.Context, input *coresSdk.GetExchangeInput, output *coresSdk.ExchangeBalanceResult) (err error) {
+	where := ""
+	if input.Id != 0 {
+		where += `ex.id = ${id}`
+	} else if input.StartupId != 0 {
+		where += `ex.startup_id = ${startupId}`
+	} else {
+		where += "1 = 2"
+	}
+	stmt := `
+		SELECT ex.*
+		FROM exchanges ex
+		WHERE ` + where
+
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{id}":        input.Id,
+		"{startupId}": input.StartupId,
+	})
+
+	err = c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+	return
 }
 
 func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExchangesInput, outputs interface{}) (total int, err error) {

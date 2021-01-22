@@ -99,8 +99,8 @@ func (h *SwapEventsHandler) Sync() (res interface{}) {
 	var output cores.CreateExchangeResult
 	var exchangeinput cores.GetExchangeInput
 	exchangeinput.StartupId = input.StartupId
-	var exchangeresult cores.ExchangeResult
-	if err := exchangemodels.Exchanges.GetExchange(h.Ctx, &exchangeinput, &exchangeresult); err != nil {
+	var balanceresult cores.ExchangeBalanceResult
+	if err := exchangemodels.Exchanges.GetBalance(h.Ctx, &exchangeinput, &balanceresult); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
 		return
