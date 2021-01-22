@@ -41,7 +41,7 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 	input.TokenSymbol2 = pairinput.Token1.Symbol
 	input.TokenAddress2 = pairinput.Token1.Address
 	input.TokenDivider2 = power(10, pairinput.Token1.Decimals)
-	input.PairName = input.TokenName1 + "-" + input.TokenName2
+	input.PairName = input.TokenSymbol1 + "-" + input.TokenSymbol2
 	input.Status = cores.ExchangeStatusCompleted
 	if err := validate.Default.Struct(input); err != nil {
 		h.Log.Warn(err)
