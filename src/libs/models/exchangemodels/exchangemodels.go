@@ -83,9 +83,9 @@ func (c *exchanges) UpdateExchange(ctx context.Context, input *coresSdk.CreateEx
 func (c *exchanges) UpdateBalance(ctx context.Context, input *coresSdk.ExchangeBalanceInput, output *coresSdk.CreateExchangeResult) (err error) {
 	stmt := `
 		UPDATE exchanges SET (
-			newest_day, newest_pooled_tokens1, newest_pooled_tokens2, last_day, last_pooled_tokens1, last_pooled_tokens2, reserve0, reserve1
+			newest_day, newest_pooled_tokens1, newest_pooled_tokens2, last_day, last_pooled_tokens1, last_pooled_tokens2, reserve0, reserve1, updated_at
 		) = (
-			${newestDay}, ${newestPooledTokens1}, ${newestPooledTokens2}, ${lastDay}, ${lastPooledTokens1}, ${lastPooledTokens2}, ${reserve0}, ${reserve1}
+			${newestDay}, ${newestPooledTokens1}, ${newestPooledTokens2}, ${lastDay}, ${lastPooledTokens1}, ${lastPooledTokens2}, ${reserve0}, ${reserve1}, current_timestamp
 		)
 		WHERE startup_id = ${startupId}
 		RETURNING id, status;
