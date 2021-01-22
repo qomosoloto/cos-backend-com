@@ -33,6 +33,7 @@ type SwapBurnInput struct {
 	Amount0   string   `json:"amount0" validate:"required"`
 	Amount1   string   `json:"amount1" validate:"required"`
 	To        string   `json:"to" validate:"required"`
+	OccuredAt string   `json:"occuredAt" validate:"required"`
 }
 
 type SwapSwapInput struct {
@@ -44,6 +45,7 @@ type SwapSwapInput struct {
 	Amount0Out string   `json:"amount0Out" validate:"required"`
 	Amount1Out string   `json:"amount1Out" validate:"required"`
 	To         string   `json:"to" validate:"required"`
+	OccuredAt  string   `json:"occuredAt" validate:"required"`
 }
 
 type SwapSyncInput struct {

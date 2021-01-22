@@ -332,7 +332,7 @@ func (c *exchanges) UpdateExchangeTx(ctx context.Context, input *coresSdk.Create
 			amount0, amount1, fee, price_per_token1, price_per_token2, status, occured_at
 		) =  (
 			${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
-			${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2}, ${status}, to_timestamp('${occuredAt}','yyyy-MM-dd hh24:mi:ss')
+			${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2}, ${status}, ${occuredAt}
 		)
 		WHERE tx_id = ${txId}
 		RETURNING id, status;

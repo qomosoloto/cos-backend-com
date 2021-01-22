@@ -186,6 +186,7 @@ func (h *SwapEventsHandler) Burn() (res interface{}) {
 	input.Amount0 = burninput.Amount0
 	input.Amount1 = burninput.Amount1
 	input.To = burninput.To
+	input.OccuredAt = burninput.OccuredAt
 	input.Type = cores.ExchangeTxTypeRemoveLiquidity
 	input.Status = cores.ExchangeTxStatusCompleted
 
@@ -226,6 +227,7 @@ func (h *SwapEventsHandler) Swap() (res interface{}) {
 		input.Type = cores.ExchangeTxTypeSwap2for1
 	}
 	input.To = swapinput.To
+	input.OccuredAt = swapinput.OccuredAt
 	input.Status = cores.ExchangeTxStatusCompleted
 
 	var output cores.CreateExchangeTxResult
