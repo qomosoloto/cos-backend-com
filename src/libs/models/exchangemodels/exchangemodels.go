@@ -329,10 +329,10 @@ func (c *exchanges) UpdateExchangeTx(ctx context.Context, input *coresSdk.Create
 	stmt := `
 		UPDATE exchange_transactions SET (
 			tx_id, exchange_id, sender, receiver, type, name, total_value, token_amount1, token_amount2, 
-			amount0, amount1, fee, price_per_token1, price_per_token2, status
+			amount0, amount1, fee, price_per_token1, price_per_token2, status, occured_at
 		) =  (
 			${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
-			${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status}
+			${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2}, ${status}, to_timestamp('${occuredAt}','yyyy-MM-dd hh24:mi:ss')
 		)
 		WHERE tx_id = ${txId}
 		RETURNING id, status;
@@ -353,6 +353,7 @@ func (c *exchanges) UpdateExchangeTx(ctx context.Context, input *coresSdk.Create
 		"{pricePerToken1}": input.PricePerToken1,
 		"{pricePerToken2}": input.PricePerToken2,
 		"{status}":         input.Status,
+		"{occuredAt}":      input.OccuredAt,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {

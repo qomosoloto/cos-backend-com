@@ -127,6 +127,7 @@ type CreateExchangeTxInput struct {
 	PricePerToken1 float64          `json:"pricePerToken1"`
 	PricePerToken2 float64          `json:"pricePerToken2"`
 	Status         ExchangeTxStatus `json:"status"`
+	OccuredAt      string           `json:"occuredAt"`
 }
 
 type CreateExchangeTxResult struct {

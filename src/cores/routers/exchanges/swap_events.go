@@ -152,6 +152,7 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 	input.Sender = mintinput.Sender
 	input.Amount0 = mintinput.Amount0
 	input.Amount1 = mintinput.Amount1
+	input.OccuredAt = mintinput.OccuredAt
 	input.Type = cores.ExchangeTxTypeAddLiquidity
 	input.Status = cores.ExchangeTxStatusCompleted
 

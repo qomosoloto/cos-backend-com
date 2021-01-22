@@ -23,6 +23,7 @@ type SwapMintInput struct {
 	Sender    string   `json:"sender" validate:"required"`
 	Amount0   string   `json:"amount0" validate:"required"`
 	Amount1   string   `json:"amount1" validate:"required"`
+	OccuredAt string   `json:"occuredAt" validate:"required"`
 }
 
 type SwapBurnInput struct {
