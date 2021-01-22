@@ -6,6 +6,7 @@ import (
 	"cos-backend-com/src/libs/apierror"
 	"cos-backend-com/src/libs/models/exchangemodels"
 	"cos-backend-com/src/libs/sdk/cores"
+	"fmt"
 	"github.com/shopspring/decimal"
 	"github.com/wujiu2020/strip/utils/apires"
 	"net/http"
@@ -105,6 +106,8 @@ func (h *SwapEventsHandler) Sync() (res interface{}) {
 		res = apierror.HandleError(err)
 		return
 	}
+	occuredday := syncinput.OccuredAt[0:10]
+	fmt.Println("occuredday=", occuredday)
 
 	if err := exchangemodels.Exchanges.UpdateBalance(h.Ctx, &input, &output); err != nil {
 		h.Log.Warn(err)

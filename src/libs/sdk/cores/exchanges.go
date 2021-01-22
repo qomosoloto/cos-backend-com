@@ -210,6 +210,4 @@ type ExchangeBalanceResult struct {
 	LastDay             string  `json:"lastDay" db:"last_day"`
 	LastPooledTokens1   float64 `json:"lastPooledTokens1" db:"last_pooled_tokens1"`
 	LastPooledTokens2   float64 `json:"lastPooledTokens2" db:"last_pooled_tokens2"`
-	Reserve0            string  `json:"reserve0" db:"reserve0"`
-	Reserve1            string  `json:"reserve1" db:"reserve1"`
 }
