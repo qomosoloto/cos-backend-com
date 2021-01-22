@@ -6,7 +6,6 @@ import (
 	"cos-backend-com/src/libs/apierror"
 	"cos-backend-com/src/libs/models/exchangemodels"
 	"cos-backend-com/src/libs/sdk/cores"
-	"fmt"
 	"github.com/shopspring/decimal"
 	"github.com/wujiu2020/strip/utils/apires"
 	"net/http"
@@ -87,10 +86,37 @@ func (h *SwapEventsHandler) Sync() (res interface{}) {
 		return
 	}
 
+	var exchangeinput cores.GetExchangeInput
+	exchangeinput.StartupId = syncinput.StartupId
+	var balanceresult cores.ExchangeBalanceResult
+	if err := exchangemodels.Exchanges.GetBalance(h.Ctx, &exchangeinput, &balanceresult); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
 	var input cores.ExchangeBalanceInput
 	input.StartupId = syncinput.StartupId
 	input.Reserve0 = syncinput.Reserve0
 	input.Reserve1 = syncinput.Reserve1
+
+	amount1, _ := decimal.NewFromString(input.Reserve0)
+	divider1Str := strconv.Itoa(balanceresult.TokenDivider1)
+	divider1, _ := decimal.NewFromString(divider1Str)
+	input.NewestPooledTokens1, _ = amount1.Div(divider1).Float64()
+	amount2, _ := decimal.NewFromString(input.Reserve1)
+	divider2Str := strconv.Itoa(balanceresult.TokenDivider2)
+	divider2, _ := decimal.NewFromString(divider2Str)
+	input.NewestPooledTokens2, _ = amount2.Div(divider2).Float64()
+
+	occuredday := syncinput.OccuredAt[0:10]
+	input.NewestDay = occuredday
+	if balanceresult.NewestDay != occuredday && balanceresult.NewestDay != "" {
+		input.LastDay = balanceresult.NewestDay
+		input.LastPooledTokens1 = balanceresult.NewestPooledTokens1
+		input.LastPooledTokens2 = balanceresult.NewestPooledTokens2
+	}
+
 	if err := validate.Default.Struct(input); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
@@ -98,17 +124,6 @@ func (h *SwapEventsHandler) Sync() (res interface{}) {
 	}
 
 	var output cores.CreateExchangeResult
-	var exchangeinput cores.GetExchangeInput
-	exchangeinput.StartupId = input.StartupId
-	var balanceresult cores.ExchangeBalanceResult
-	if err := exchangemodels.Exchanges.GetBalance(h.Ctx, &exchangeinput, &balanceresult); err != nil {
-		h.Log.Warn(err)
-		res = apierror.HandleError(err)
-		return
-	}
-	occuredday := syncinput.OccuredAt[0:10]
-	fmt.Println("occuredday=", occuredday)
-
 	if err := exchangemodels.Exchanges.UpdateBalance(h.Ctx, &input, &output); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
