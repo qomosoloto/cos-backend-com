@@ -297,9 +297,9 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
 	stmt := `
 		INSERT INTO exchange_transactions(tx_id, exchange_id, sender, receiver, type, name, total_value, token_amount1, token_amount2, 
-										  amount0, amount1, fee, price_per_token1, price_per_token2, status)
+										  amount0, amount1, fee, price_per_token1, price_per_token2, status, occured_at)
 		VALUES (${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
-				${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status})
+				${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status}, ${occuredAt})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
@@ -318,6 +318,7 @@ func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.Create
 		"{pricePerToken1}": input.PricePerToken1,
 		"{pricePerToken2}": input.PricePerToken2,
 		"{status}":         input.Status,
+		"{occuredAt}":      input.OccuredAt,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
