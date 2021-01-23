@@ -40,7 +40,7 @@ func (h *ExchangesHandler) CreateExchange(startupId flake.ID) (res interface{}) 
 	input.TokenAddress2 = ""
 	input.TokenDivider2 = 1
 	input.PairName = input.TokenName1 + "-" + input.TokenName2
-	input.PairAddress = ""
+	input.PairAddress = input.TxId
 	input.Status = cores.ExchangeStatusPending
 
 	if err := validate.Default.Struct(input); err != nil {
