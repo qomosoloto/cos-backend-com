@@ -10,6 +10,7 @@ import (
 	"cos-backend-com/src/libs/sdk/cores"
 	"github.com/wujiu2020/strip/utils/apires"
 	"net/http"
+	"time"
 )
 
 type ExchangesHandler struct {
@@ -34,11 +35,13 @@ func (h *ExchangesHandler) CreateExchange(startupId flake.ID) (res interface{}) 
 	input.TokenName1 = startup.Setting.TokenName
 	input.TokenSymbol1 = startup.Setting.TokenSymbol
 	input.TokenAddress1 = *startup.Setting.TokenAddr
+	input.TokenDivider1 = 1
 	input.TokenName2 = "ETH"
 	input.TokenSymbol2 = "ETH"
 	input.TokenAddress2 = ""
+	input.TokenDivider2 = 1
 	input.PairName = input.TokenName1 + "-" + input.TokenName2
-	input.PairAddress = ""
+	input.PairAddress = input.TxId
 	input.Status = cores.ExchangeStatusPending
 
 	if err := validate.Default.Struct(input); err != nil {
@@ -128,6 +131,7 @@ func (h *ExchangesHandler) CreateExchangeTx(exchangeId flake.ID) (res interface{
 	} else {
 		input.PricePerToken2 = input.TokenAmount1 / input.TokenAmount2
 	}
+	input.OccuredAt = time.Now().Format("2006-01-02 15:04:05")
 
 	if err := validate.Default.Struct(input); err != nil {
 		h.Log.Warn(err)

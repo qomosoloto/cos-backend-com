@@ -47,9 +47,11 @@ type CreateExchangeInput struct {
 	TokenName1    string         `json:"tokenName1" validate:"required"`
 	TokenSymbol1  string         `json:"tokenSymbol1" validate:"required"`
 	TokenAddress1 string         `json:"tokenAddress1"`
+	TokenDivider1 int            `json:"tokenDivider1"`
 	TokenName2    string         `json:"tokenName2" validate:"required"`
 	TokenSymbol2  string         `json:"tokenSymbol2" validate:"required"`
 	TokenAddress2 string         `json:"tokenAddress2"`
+	TokenDivider2 int            `json:"tokenDivider2"`
 	Status        ExchangeStatus `json:"status"`
 }
 
@@ -74,10 +76,14 @@ type ExchangeResult struct {
 		TokenSymbol string   `json:"tokenSymbol" db:"token_symbol"`
 		Mission     string   `json:"mission" db:"mission"`
 	} `json:"startup" db:"startup"`
-	PairName    string         `json:"pairName" db:"pair_name"`
-	PairAddress string         `json:"pairAddress" db:"pair_address"`
-	Status      ExchangeStatus `json:"status" db:"status"`
-	FollowCount int            `json:"followCount" db:"follow_count"`
+	PairName      string         `json:"pairName" db:"pair_name"`
+	PairAddress   string         `json:"pairAddress" db:"pair_address"`
+	Status        ExchangeStatus `json:"status" db:"status"`
+	FollowCount   int            `json:"followCount" db:"follow_count"`
+	TokenDivider1 int            `json:"tokenDivider1" db:"token_divider1"`
+	TokenDivider2 int            `json:"tokenDivider2" db:"token_divider2"`
+	TokenSymbol1  string         `json:"tokenSymbol1" db:"token_symbol1"`
+	TokenSymbol2  string         `json:"tokenSymbol2" db:"token_symbol2"`
 }
 
 type ListExchangesInput struct {
@@ -106,14 +112,22 @@ type ListExchangesResult struct {
 
 type CreateExchangeTxInput struct {
 	TxId           string           `json:"txId" validate:"required"`
+	StartupId      flake.ID         `json:"startupId"`
 	ExchangeId     flake.ID         `json:"exchangeId" validate:"required"`
-	Account        string           `json:"account" validate:"required"`
+	Sender         string           `json:"sender" validate:"required"`
+	To             string           `json:"to"`
 	Type           ExchangeTxType   `json:"type" validate:"required"`
+	Name           string           `json:"name"`
+	TotalValue     float64          `json:"totalValue"`
 	TokenAmount1   float64          `json:"tokenAmount1"`
 	TokenAmount2   float64          `json:"tokenAmount2"`
+	Amount0        string           `json:"amount0"`
+	Amount1        string           `json:"amount1"`
+	Fee            float64          `json:"fee"`
 	PricePerToken1 float64          `json:"pricePerToken1"`
 	PricePerToken2 float64          `json:"pricePerToken2"`
 	Status         ExchangeTxStatus `json:"status"`
+	OccuredAt      string           `json:"occuredAt"`
 }
 
 type CreateExchangeTxResult struct {
@@ -130,7 +144,8 @@ type ExchangeTxResult struct {
 	Id             flake.ID         `json:"id" db:"id"`
 	TxId           string           `json:"txId" db:"tx_id"`
 	ExchangeId     flake.ID         `json:"exchangeId" db:"exchange_id"`
-	Account        string           `json:"account" db:"account"`
+	Sender         string           `json:"sender" db:"sender"`
+	To             string           `json:"to" db:"receiver"`
 	Type           ExchangeTxType   `json:"type" db:"type"`
 	Name           string           `json:"name" db:"name"`
 	TotalValue     float64          `json:"totalValue" db:"total_value"`
@@ -173,4 +188,27 @@ type ExchangeOneStatsPriceChangeResult struct {
 		OccuredDay string  `json:"occuredDay" db:"occured_day"`
 		EndPrice   float64 `json:"endPrice" db:"end_price"`
 	} `json:"priceChanges" db:"price_changes"`
+}
+
+type ExchangeBalanceInput struct {
+	StartupId           flake.ID `json:"startupId" validate:"required"`
+	NewestDay           string   `json:"newestDay"`
+	NewestPooledTokens1 float64  `json:"newestPooledTokens1"`
+	NewestPooledTokens2 float64  `json:"newestPooledTokens2"`
+	LastDay             string   `json:"lastDay"`
+	LastPooledTokens1   float64  `json:"lastPooledTokens1"`
+	LastPooledTokens2   float64  `json:"lastPooledTokens2"`
+	Reserve0            string   `json:"reserve0" validate:"required"`
+	Reserve1            string   `json:"reserve1" validate:"required"`
+}
+
+type ExchangeBalanceResult struct {
+	TokenDivider1       int     `json:"tokenDivider1" db:"token_divider1"`
+	TokenDivider2       int     `json:"tokenDivider2" db:"token_divider2"`
+	NewestDay           string  `json:"newestDay" db:"newest_day"`
+	NewestPooledTokens1 float64 `json:"newestPooledTokens1" db:"newest_pooled_tokens1"`
+	NewestPooledTokens2 float64 `json:"newestPooledTokens2" db:"newest_pooled_tokens2"`
+	LastDay             string  `json:"lastDay" db:"last_day"`
+	LastPooledTokens1   float64 `json:"lastPooledTokens1" db:"last_pooled_tokens1"`
+	LastPooledTokens2   float64 `json:"lastPooledTokens2" db:"last_pooled_tokens2"`
 }
