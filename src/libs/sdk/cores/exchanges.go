@@ -61,8 +61,10 @@ type CreateExchangeResult struct {
 }
 
 type GetExchangeInput struct {
-	Id        flake.ID `json:"id"`
-	StartupId flake.ID `json:"startupId"`
+	Id          flake.ID `json:"id"`
+	StartupId   flake.ID `json:"startupId"`
+	TxId        string   `json:"txId"`
+	PairAddress string   `json:"pairAddress"`
 }
 
 type ExchangeResult struct {
@@ -114,6 +116,7 @@ type CreateExchangeTxInput struct {
 	TxId           string           `json:"txId" validate:"required"`
 	StartupId      flake.ID         `json:"startupId"`
 	ExchangeId     flake.ID         `json:"exchangeId" validate:"required"`
+	PairAddress    string           `json:"pairAddress"`
 	Sender         string           `json:"sender" validate:"required"`
 	To             string           `json:"to"`
 	Type           ExchangeTxType   `json:"type" validate:"required"`
@@ -203,12 +206,13 @@ type ExchangeBalanceInput struct {
 }
 
 type ExchangeBalanceResult struct {
-	TokenDivider1       int     `json:"tokenDivider1" db:"token_divider1"`
-	TokenDivider2       int     `json:"tokenDivider2" db:"token_divider2"`
-	NewestDay           string  `json:"newestDay" db:"newest_day"`
-	NewestPooledTokens1 float64 `json:"newestPooledTokens1" db:"newest_pooled_tokens1"`
-	NewestPooledTokens2 float64 `json:"newestPooledTokens2" db:"newest_pooled_tokens2"`
-	LastDay             string  `json:"lastDay" db:"last_day"`
-	LastPooledTokens1   float64 `json:"lastPooledTokens1" db:"last_pooled_tokens1"`
-	LastPooledTokens2   float64 `json:"lastPooledTokens2" db:"last_pooled_tokens2"`
+	StartupId           flake.ID `json:"startupId" db:"startup_id"`
+	TokenDivider1       int      `json:"tokenDivider1" db:"token_divider1"`
+	TokenDivider2       int      `json:"tokenDivider2" db:"token_divider2"`
+	NewestDay           string   `json:"newestDay" db:"newest_day"`
+	NewestPooledTokens1 float64  `json:"newestPooledTokens1" db:"newest_pooled_tokens1"`
+	NewestPooledTokens2 float64  `json:"newestPooledTokens2" db:"newest_pooled_tokens2"`
+	LastDay             string   `json:"lastDay" db:"last_day"`
+	LastPooledTokens1   float64  `json:"lastPooledTokens1" db:"last_pooled_tokens1"`
+	LastPooledTokens2   float64  `json:"lastPooledTokens2" db:"last_pooled_tokens2"`
 }

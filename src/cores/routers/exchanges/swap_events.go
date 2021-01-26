@@ -29,9 +29,18 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 		return
 	}
 
+	var exchangeinput cores.GetExchangeInput
+	exchangeinput.TxId = pairinput.TxId
+	var exchangeresult cores.ExchangeResult
+	if err := exchangemodels.Exchanges.GetExchange(h.Ctx, &exchangeinput, &exchangeresult); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
 	var input cores.CreateExchangeInput
 	input.TxId = pairinput.TxId
-	input.StartupId = pairinput.StartupId
+	input.StartupId = exchangeresult.Startup.Id
 	input.PairAddress = pairinput.PairAddress
 	input.TokenName1 = pairinput.Token0.Name
 	input.TokenSymbol1 = pairinput.Token0.Symbol
@@ -50,19 +59,8 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 	}
 
 	var output cores.CreateExchangeResult
-	var exchangeinput cores.GetExchangeInput
-	exchangeinput.StartupId = pairinput.StartupId
-	var exchangeresult cores.ExchangeResult
-	if err := exchangemodels.Exchanges.GetExchange(h.Ctx, &exchangeinput, &exchangeresult); err == nil {
-		if exchangeresult.Status != cores.ExchangeStatusCompleted {
-			if err := exchangemodels.Exchanges.UpdateExchange(h.Ctx, &input, &output); err != nil {
-				h.Log.Warn(err)
-				res = apierror.HandleError(err)
-				return
-			}
-		}
-	} else {
-		if err := exchangemodels.Exchanges.CreateExchange(h.Ctx, &input, &output); err != nil {
+	if exchangeresult.Status != cores.ExchangeStatusCompleted {
+		if err := exchangemodels.Exchanges.UpdateExchange(h.Ctx, &input, &output); err != nil {
 			h.Log.Warn(err)
 			res = apierror.HandleError(err)
 			return
@@ -87,7 +85,7 @@ func (h *SwapEventsHandler) Sync() (res interface{}) {
 	}
 
 	var exchangeinput cores.GetExchangeInput
-	exchangeinput.StartupId = syncinput.StartupId
+	exchangeinput.PairAddress = syncinput.PairAddress
 	var balanceresult cores.ExchangeBalanceResult
 	if err := exchangemodels.Exchanges.GetBalance(h.Ctx, &exchangeinput, &balanceresult); err != nil {
 		h.Log.Warn(err)
@@ -96,7 +94,7 @@ func (h *SwapEventsHandler) Sync() (res interface{}) {
 	}
 
 	var input cores.ExchangeBalanceInput
-	input.StartupId = syncinput.StartupId
+	input.StartupId = balanceresult.StartupId
 	input.Reserve0 = syncinput.Reserve0
 	input.Reserve1 = syncinput.Reserve1
 
@@ -148,7 +146,7 @@ func (h *SwapEventsHandler) Mint() (res interface{}) {
 	}
 	var input cores.CreateExchangeTxInput
 	input.TxId = mintinput.TxId
-	input.StartupId = mintinput.StartupId
+	input.PairAddress = mintinput.PairAddress
 	input.Sender = mintinput.Sender
 	input.Amount0 = mintinput.Amount0
 	input.Amount1 = mintinput.Amount1
@@ -181,7 +179,7 @@ func (h *SwapEventsHandler) Burn() (res interface{}) {
 	}
 	var input cores.CreateExchangeTxInput
 	input.TxId = burninput.TxId
-	input.StartupId = burninput.StartupId
+	input.PairAddress = burninput.PairAddress
 	input.Sender = burninput.Sender
 	input.Amount0 = burninput.Amount0
 	input.Amount1 = burninput.Amount1
@@ -215,7 +213,7 @@ func (h *SwapEventsHandler) Swap() (res interface{}) {
 	}
 	var input cores.CreateExchangeTxInput
 	input.TxId = swapinput.TxId
-	input.StartupId = swapinput.StartupId
+	input.PairAddress = swapinput.PairAddress
 	input.Sender = swapinput.Sender
 	if swapinput.Amount0In != "0" {
 		input.Amount0 = swapinput.Amount0In
@@ -243,7 +241,7 @@ func (h *SwapEventsHandler) Swap() (res interface{}) {
 
 func InputExchangeTx(h *SwapEventsHandler, input *cores.CreateExchangeTxInput, output *cores.CreateExchangeTxResult) (err error) {
 	var exchangeinput cores.GetExchangeInput
-	exchangeinput.StartupId = input.StartupId
+	exchangeinput.PairAddress = input.PairAddress
 	var exchangeresult cores.ExchangeResult
 	if err = exchangemodels.Exchanges.GetExchange(h.Ctx, &exchangeinput, &exchangeresult); err != nil {
 		return
