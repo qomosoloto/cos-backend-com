@@ -113,6 +113,10 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 		where += `ex.id = ${id}`
 	} else if input.StartupId != 0 {
 		where += `ex.startup_id = ${startupId}`
+	} else if input.TxId != "" {
+		where += `ex.tx_id = ${txId}`
+	} else if input.PairAddress != "" {
+		where += `ex.pair_address = ${pairAddress}`
 	} else {
 		where += "1 = 2"
 	}
@@ -141,8 +145,10 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 	SELECT row_to_json(res.*) FROM res
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
-		"{id}":        input.Id,
-		"{startupId}": input.StartupId,
+		"{id}":          input.Id,
+		"{startupId}":   input.StartupId,
+		"{txId}":        input.TxId,
+		"{pairAddress}": input.PairAddress,
 	})
 
 	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
@@ -156,6 +162,10 @@ func (c *exchanges) GetBalance(ctx context.Context, input *coresSdk.GetExchangeI
 		where += `ex.id = ${id}`
 	} else if input.StartupId != 0 {
 		where += `ex.startup_id = ${startupId}`
+	} else if input.TxId != "" {
+		where += `ex.tx_id = ${txId}`
+	} else if input.PairAddress != "" {
+		where += `ex.pair_address = ${pairAddress}`
 	} else {
 		where += "1 = 2"
 	}
@@ -165,8 +175,10 @@ func (c *exchanges) GetBalance(ctx context.Context, input *coresSdk.GetExchangeI
 		WHERE ` + where
 
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
-		"{id}":        input.Id,
-		"{startupId}": input.StartupId,
+		"{id}":          input.Id,
+		"{startupId}":   input.StartupId,
+		"{txId}":        input.TxId,
+		"{pairAddress}": input.PairAddress,
 	})
 
 	err = c.Invoke(ctx, func(db dbconn.Q) error {
