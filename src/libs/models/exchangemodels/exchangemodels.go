@@ -114,9 +114,9 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 	} else if input.StartupId != 0 {
 		where += `ex.startup_id = ${startupId}`
 	} else if input.TxId != "" {
-		where += `ex.tx_id = '${txId}'`
+		where += `ex.tx_id = ${txId}`
 	} else if input.PairAddress != "" {
-		where += `ex.pair_address = '${pairAddress}'`
+		where += `ex.pair_address = ${pairAddress}`
 	} else {
 		where += "1 = 2"
 	}
@@ -163,9 +163,9 @@ func (c *exchanges) GetBalance(ctx context.Context, input *coresSdk.GetExchangeI
 	} else if input.StartupId != 0 {
 		where += `ex.startup_id = ${startupId}`
 	} else if input.TxId != "" {
-		where += `ex.tx_id = '${txId}'`
+		where += `ex.tx_id = ${txId}`
 	} else if input.PairAddress != "" {
-		where += `ex.pair_address = '${pairAddress}'`
+		where += `ex.pair_address = ${pairAddress}`
 	} else {
 		where += "1 = 2"
 	}
