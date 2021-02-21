@@ -226,7 +226,7 @@ CREATE TABLE comunion.discos (
     share_token bigint NOT NULL,
     min_fund_raising bigint NOT NULL,
     add_liquidity_pool bigint NOT NULL,
-    total_deposit_token bigint NOT NULL,
+    total_deposit_token double precision NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     state integer DEFAULT 0 NOT NULL
