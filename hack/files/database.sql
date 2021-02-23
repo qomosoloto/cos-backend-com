@@ -229,7 +229,8 @@ CREATE TABLE comunion.discos (
     total_deposit_token double precision NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    state integer DEFAULT 0 NOT NULL
+    state integer DEFAULT 0 NOT NULL,
+    fund_raising_addr text
 );
 
 
