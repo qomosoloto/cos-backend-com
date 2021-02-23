@@ -33,6 +33,7 @@ type DiscosModel struct {
 	AddLiquidityPool     int64      `json:"addLiquidityPool" db:"add_liquidity_pool"`          // add_liquidity_pool
 	TotalDepositToken    float64    `json:"totalDepositToken" db:"total_deposit_token"`        // total_deposit_token
 	State                DiscoState `json:"state" db:"state"`                                  // state
+	FundRaisingAddr      string     `json:"fundRaisingAddr" db:"fund_raising_addr"`            // fund_raising_addr
 	CreatedAt            time.Time  `json:"createdAt" db:"created_at"`                         // created_at
 	UpdatedAt            time.Time  `json:"updatedAt" db:"updated_at"`                         // updated_at
 }
@@ -70,8 +71,8 @@ type StartupDiscosResult struct {
 	TotalDepositToken    float64              `json:"totalDepositToken" db:"total_deposit_token"`        // total_deposit_token
 	State                DiscoState           `json:"state" db:"state"`                                  // state
 	TxId                 string               `json:"txId" db:"tx_id"`                                   // tx_id
-	FundRaisingAddr      string               `json:"fundRaisingAddr" db:"fund_raising_addr"`            //fund_raising_addr
-	TransactionState     eth.TransactionState `json:"transactionState" db:"transaction_state"`           //transaction_state
+	FundRaisingAddr      string               `json:"fundRaisingAddr" db:"fund_raising_addr"`            // fund_raising_addr
+	TransactionState     eth.TransactionState `json:"transactionState" db:"transaction_state"`           // transaction_state
 }
 
 // ListDiscoResult represents an output for 'discos'.
