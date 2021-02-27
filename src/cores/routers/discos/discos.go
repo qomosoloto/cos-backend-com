@@ -154,7 +154,7 @@ func (h *DiscosHandler) StatDiscoTotal() (res interface{}) {
 
 func (h *DiscosHandler) GetDiscoSwapState(startupId flake.ID) (res interface{}) {
 	var output cores.DiscoSwapStateOutput
-	if err := discomodels.Discos.GetDiscoSwapState(h.Ctx,&startupId, &output); err != nil {
+	if err := discomodels.Discos.GetDiscoSwapState(h.Ctx, &startupId, &output); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
 		return
