@@ -85,6 +85,7 @@ type DiscoOutput struct {
 	MinFundRaising    int64               `json:"minFundRaising" db:"min_fund_raising"`       // min_fund_raising
 	AddLiquidityPool  int64               `json:"addLiquidityPool" db:"add_liquidity_pool"`   // add_liquidity_pool
 	State             DiscoState          `json:"state" db:"state"`                           // state
+	FundRaisingAddr   string              `json:"fundRaisingAddr" db:"fund_raising_addr"`     // fund_raising_addr
 }
 
 type DiscosStartupResult struct {
