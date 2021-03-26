@@ -18,4 +18,7 @@ func Cors(ctx strip.Context, log strip.ReqLogger, rw http.ResponseWriter, req *h
 		rw.Header().Set("Access-Control-Allow-Credentials", "true")
 		rw.Header().Set("Access-Control-Max-Age", "86400")
 	}
+	if req.Method == "OPTIONS" {
+		rw.WriteHeader(204)
+	}
 }
