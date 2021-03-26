@@ -94,6 +94,7 @@ func (p *appConfig) ConfigProviders() {
 }
 
 func (p *appConfig) ConfigFilters() {
+	p.Filter(filters.Cors)
 }
 
 func (p *appConfig) ConfigRoutes() {
