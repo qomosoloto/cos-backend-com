@@ -67,7 +67,7 @@ func (c *discos) CreateDisco(ctx context.Context, startupId flake.ID, input *cor
 func (c *discos) GetDisco(ctx context.Context, startupId flake.ID, output interface{}) (err error) {
 	stmt := `
 		WITH res AS (
-		    SELECT *
+		    SELECT *, t.state as transaction_state, d.state as state, d.id as id
 		    FROM discos d
 		        INNER JOIN transactions t ON t.source = ${source} AND source_id = d.id
 		    WHERE d.startup_id = ${startupId}
