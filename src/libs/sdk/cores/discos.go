@@ -31,8 +31,9 @@ type DiscosModel struct {
 	ShareToken           int64      `json:"shareToken" db:"share_token"`                       // share_token
 	MinFundRaising       int64      `json:"minFundRaising" db:"min_fund_raising"`              // min_fund_raising
 	AddLiquidityPool     int64      `json:"addLiquidityPool" db:"add_liquidity_pool"`          // add_liquidity_pool
-	TotalDepositToken    int        `json:"totalDepositToken" db:"total_deposit_token"`        // total_deposit_token
+	TotalDepositToken    float64    `json:"totalDepositToken" db:"total_deposit_token"`        // total_deposit_token
 	State                DiscoState `json:"state" db:"state"`                                  // state
+	FundRaisingAddr      string     `json:"fundRaisingAddr" db:"fund_raising_addr"`            // fund_raising_addr
 	CreatedAt            time.Time  `json:"createdAt" db:"created_at"`                         // created_at
 	UpdatedAt            time.Time  `json:"updatedAt" db:"updated_at"`                         // updated_at
 }
@@ -50,7 +51,7 @@ type CreateDiscosInput struct {
 	ShareToken           int64     `json:"shareToken" validate:"required"`
 	MinFundRaising       int64     `json:"minFundRaising" validate:"required"`
 	AddLiquidityPool     int64     `json:"addLiquidityPool" validate:"required"`
-	TotalDepositToken    int       `json:"totalDepositToken" validate:"required"`
+	TotalDepositToken    float64   `json:"totalDepositToken" validate:"required"`
 	TxId                 string    `json:"txId" validate:"required"`
 }
 
@@ -67,11 +68,11 @@ type StartupDiscosResult struct {
 	ShareToken           int64                `json:"shareToken" db:"share_token"`                       // share_token
 	MinFundRaising       int64                `json:"minFundRaising" db:"min_fund_raising"`              // min_fund_raising
 	AddLiquidityPool     int64                `json:"addLiquidityPool" db:"add_liquidity_pool"`          // add_liquidity_pool
-	TotalDepositToken    int                  `json:"totalDepositToken" db:"total_deposit_token"`        // total_deposit_token
+	TotalDepositToken    float64              `json:"totalDepositToken" db:"total_deposit_token"`        // total_deposit_token
 	State                DiscoState           `json:"state" db:"state"`                                  // state
 	TxId                 string               `json:"txId" db:"tx_id"`                                   // tx_id
-	FundRaisingAddr      string               `json:"fundRaisingAddr" db:"fund_raising_addr"`            //fund_raising_addr
-	TransactionState     eth.TransactionState `json:"transactionState" db:"transaction_state"`           //transaction_state
+	FundRaisingAddr      string               `json:"fundRaisingAddr" db:"fund_raising_addr"`            // fund_raising_addr
+	TransactionState     eth.TransactionState `json:"transactionState" db:"transaction_state"`           // transaction_state
 }
 
 // ListDiscoResult represents an output for 'discos'.
@@ -84,6 +85,7 @@ type DiscoOutput struct {
 	MinFundRaising    int64               `json:"minFundRaising" db:"min_fund_raising"`       // min_fund_raising
 	AddLiquidityPool  int64               `json:"addLiquidityPool" db:"add_liquidity_pool"`   // add_liquidity_pool
 	State             DiscoState          `json:"state" db:"state"`                           // state
+	FundRaisingAddr   string              `json:"fundRaisingAddr" db:"fund_raising_addr"`     // fund_raising_addr
 }
 
 type DiscosStartupResult struct {
@@ -136,4 +138,9 @@ type StatDiscoTotalResult struct {
 	Count        int64   `json:"count" db:"count"`
 	IcreaseCount int64   `json:"-" db:"increase_count"`
 	Rate         float64 `json:"rate" db:"rate"`
+}
+
+type DiscoSwapStateOutput struct {
+	DiscoState int `json:"discoState" db:"disco_state"`
+	SwapState  int `json:"swapState" db:"swap_state"`
 }

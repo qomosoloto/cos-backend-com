@@ -5,9 +5,8 @@ import (
 	"cos-backend-com/src/common/dbconn"
 	"cos-backend-com/src/common/util"
 	"cos-backend-com/src/libs/models"
-	"cos-backend-com/src/libs/models/ethmodels"
 	coresSdk "cos-backend-com/src/libs/sdk/cores"
-	ethSdk "cos-backend-com/src/libs/sdk/eth"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -21,33 +20,90 @@ type exchanges struct {
 
 func (c *exchanges) CreateExchange(ctx context.Context, input *coresSdk.CreateExchangeInput, output *coresSdk.CreateExchangeResult) (err error) {
 	stmt := `
-		INSERT INTO exchanges(tx_id, startup_id, token_name1, token_symbol1, token_address1, token_name2, token_symbol2, status)
-		VALUES (${txId}, ${startupId}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenName2}, ${tokenSymbol2}, ${status})
+		INSERT INTO exchanges(tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_divider1, 
+							  token_name2, token_symbol2, token_address2, token_divider2, status)
+		VALUES (${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenDivider1}, 
+				${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${tokenDivider2}, ${status})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
 		"{txId}":          input.TxId,
 		"{startupId}":     input.StartupId,
+		"{pairName}":      input.PairName,
+		"{pairAddress}":   input.PairAddress,
 		"{tokenName1}":    input.TokenName1,
 		"{tokenSymbol1}":  input.TokenSymbol1,
 		"{tokenAddress1}": input.TokenAddress1,
+		"{tokenDivider1}": input.TokenDivider1,
 		"{tokenName2}":    input.TokenName2,
 		"{tokenSymbol2}":  input.TokenSymbol2,
+		"{tokenAddress2}": input.TokenAddress2,
+		"{tokenDivider2}": input.TokenDivider2,
 		"{status}":        input.Status,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
-		newCtx := dbconn.WithDB(ctx, db)
-		if er := db.GetContext(newCtx, output, query, args...); er != nil {
-			return er
-		}
-		createTransactionsInput := ethSdk.CreateTransactionsInput{
-			TxId:     input.TxId,
-			Source:   ethSdk.TransactionSourceExchange,
-			SourceId: output.Id,
-		}
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
 
-		return ethmodels.Transactions.Create(newCtx, &createTransactionsInput)
+func (c *exchanges) UpdateExchange(ctx context.Context, input *coresSdk.CreateExchangeInput, output *coresSdk.CreateExchangeResult) (err error) {
+	stmt := `
+		UPDATE exchanges SET (
+			tx_id, startup_id, pair_name, pair_address, token_name1, token_symbol1, token_address1, token_divider1, 
+			token_name2, token_symbol2, token_address2, token_divider2, status, updated_at
+		) = (
+			${txId}, ${startupId}, ${pairName}, ${pairAddress}, ${tokenName1}, ${tokenSymbol1}, ${tokenAddress1}, ${tokenDivider1}, 
+			${tokenName2}, ${tokenSymbol2}, ${tokenAddress2}, ${tokenDivider2}, ${status}, current_timestamp
+		)
+		WHERE startup_id = ${startupId}
+		RETURNING id, status;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{txId}":          input.TxId,
+		"{startupId}":     input.StartupId,
+		"{pairName}":      input.PairName,
+		"{pairAddress}":   input.PairAddress,
+		"{tokenName1}":    input.TokenName1,
+		"{tokenSymbol1}":  input.TokenSymbol1,
+		"{tokenAddress1}": input.TokenAddress1,
+		"{tokenDivider1}": input.TokenDivider1,
+		"{tokenName2}":    input.TokenName2,
+		"{tokenSymbol2}":  input.TokenSymbol2,
+		"{tokenAddress2}": input.TokenAddress2,
+		"{tokenDivider2}": input.TokenDivider2,
+		"{status}":        input.Status,
+	})
+
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
+func (c *exchanges) UpdateBalance(ctx context.Context, input *coresSdk.ExchangeBalanceInput, output *coresSdk.CreateExchangeResult) (err error) {
+	stmt := `
+		UPDATE exchanges SET (
+			newest_day, newest_pooled_tokens1, newest_pooled_tokens2, last_day, last_pooled_tokens1, last_pooled_tokens2, reserve0, reserve1, updated_at
+		) = (
+			${newestDay}, ${newestPooledTokens1}, ${newestPooledTokens2}, ${lastDay}, ${lastPooledTokens1}, ${lastPooledTokens2}, ${reserve0}, ${reserve1}, current_timestamp
+		)
+		WHERE startup_id = ${startupId}
+		RETURNING id, status;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{startupId}":           input.StartupId,
+		"{newestDay}":           input.NewestDay,
+		"{newestPooledTokens1}": input.NewestPooledTokens1,
+		"{newestPooledTokens2}": input.NewestPooledTokens2,
+		"{lastDay}":             input.LastDay,
+		"{lastPooledTokens1}":   input.LastPooledTokens1,
+		"{lastPooledTokens2}":   input.LastPooledTokens2,
+		"{reserve0}":            input.Reserve0,
+		"{reserve1}":            input.Reserve1,
+	})
+
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
 	})
 }
 
@@ -57,6 +113,10 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 		where += `ex.id = ${id}`
 	} else if input.StartupId != 0 {
 		where += `ex.startup_id = ${startupId}`
+	} else if input.TxId != "" {
+		where += `ex.tx_id = ${txId}`
+	} else if input.PairAddress != "" {
+		where += `ex.pair_address = ${pairAddress}`
 	} else {
 		where += "1 = 2"
 	}
@@ -70,7 +130,11 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 			ex.pair_name,
 			ex.pair_address,
 			ex.status,
-			(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count
+			(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count,
+			ex.token_divider1,
+			ex.token_divider2,
+			ex.token_symbol1,
+			ex.token_symbol2
 	    FROM exchanges ex
 			INNER JOIN startups s ON s.id = ex.startup_id
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
@@ -81,8 +145,10 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 	SELECT row_to_json(res.*) FROM res
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
-		"{id}":        input.Id,
-		"{startupId}": input.StartupId,
+		"{id}":          input.Id,
+		"{startupId}":   input.StartupId,
+		"{txId}":        input.TxId,
+		"{pairAddress}": input.PairAddress,
 	})
 
 	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
@@ -90,12 +156,67 @@ func (c *exchanges) GetExchange(ctx context.Context, input *coresSdk.GetExchange
 	})
 }
 
+func (c *exchanges) GetBalance(ctx context.Context, input *coresSdk.GetExchangeInput, output *coresSdk.ExchangeBalanceResult) (err error) {
+	where := ""
+	if input.Id != 0 {
+		where += `ex.id = ${id}`
+	} else if input.StartupId != 0 {
+		where += `ex.startup_id = ${startupId}`
+	} else if input.TxId != "" {
+		where += `ex.tx_id = ${txId}`
+	} else if input.PairAddress != "" {
+		where += `ex.pair_address = ${pairAddress}`
+	} else {
+		where += "1 = 2"
+	}
+	stmt := `
+		SELECT ex.*
+		FROM exchanges ex
+		WHERE ` + where
+
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{id}":          input.Id,
+		"{startupId}":   input.StartupId,
+		"{txId}":        input.TxId,
+		"{pairAddress}": input.PairAddress,
+	})
+
+	err = c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+	return
+}
+
 func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExchangesInput, outputs interface{}) (total int, err error) {
 	filterStmt := ``
-	var keyword string
+	orderStmt := "ORDER BY %v %v"
+	keyword := ""
 	if input.Keyword != "" {
 		keyword = "%" + util.PgEscapeLike(input.Keyword) + "%"
 		filterStmt += `AND s.name ILIKE ${keyword}`
+	}
+
+	if *input.OrderBy == "" {
+		orderStmt = fmt.Sprintf(orderStmt, "created_at", "DESC")
+	} else {
+		orderField := ""
+		switch *input.OrderBy {
+		case coresSdk.ListExchangesOrderByTime:
+			orderField = "created_at"
+		case coresSdk.ListExchangesOrderByName:
+			orderField = "startup_name"
+		case coresSdk.ListExchangesOrderByLiquidities:
+			orderField = "liquidities"
+		case coresSdk.ListExchangesOrderByVolumes24Hrs:
+			orderField = "volumes_24hrs"
+		}
+		orderSeq := ""
+		if input.IsDesc {
+			orderSeq = "DESC"
+		} else {
+			orderSeq = "ASC"
+		}
+		orderStmt = fmt.Sprintf(orderStmt, orderField, orderSeq)
 	}
 
 	stmt := ` 
@@ -104,18 +225,18 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 				SELECT
 					ex.id,
 					ex.tx_id,
+					s.name startup_name,
 					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
 					ex.price,
 					ex.newest_pooled_tokens2 liquidities,
-					ex.status
+					ex.status,
+					ex.created_at created_at
 				FROM exchanges ex
 					INNER JOIN startups s ON s.id = ex.startup_id
 					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 					INNER JOIN startup_settings ss ON s.id = ss.startup_id
 					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-				WHERE 1=1` + filterStmt + `
-					ORDER BY ex.created_at DESC
-					LIMIT ${limit} OFFSET ${offset}
+				WHERE ex.status = ${ExchangeStatusCompleted}` + filterStmt + `					
 			),
 			volumes_24hrs_cte AS (
 				SELECT et.exchange_id, SUM(et.token_amount2) volumes_24hrs
@@ -142,10 +263,12 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 				GROUP BY etrc.exchange_id
 			),
 			res AS (
-				SELECT ec.*, v24c.volumes_24hrs, COALESCE(etrgc.price_changes, '[]'::json) price_changes
+				SELECT ec.*, v24c.volumes_24hrs volumes_24hrs, COALESCE(etrgc.price_changes, '[]'::json) price_changes
 				FROM exchanges_cte ec
-				LEFT JOIN exchange_tx_rels_group_cte etrgc ON ec.id = etrgc.exchange_id
-				LEFT JOIN volumes_24hrs_cte v24c ON ec.id = v24c.exchange_id
+					LEFT JOIN exchange_tx_rels_group_cte etrgc ON ec.id = etrgc.exchange_id
+					LEFT JOIN volumes_24hrs_cte v24c ON ec.id = v24c.exchange_id
+				` + orderStmt + `
+				LIMIT ${limit} OFFSET ${offset}
 			)
 			SELECT COALESCE(json_agg(r.*), '[]'::json) FROM res r;
 	`
@@ -157,10 +280,11 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 			INNER JOIN startup_settings ss ON s.id = ss.startup_id
 			INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-		WHERE 1=1` + filterStmt
+		WHERE ex.status = ${ExchangeStatusCompleted}` + filterStmt
 
 	query, args := util.PgMapQuery(countStmt, map[string]interface{}{
-		"{keyword}": keyword,
+		"{keyword}":                 keyword,
+		"{ExchangeStatusCompleted}": coresSdk.ExchangeStatusCompleted,
 	})
 
 	if err = c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
@@ -169,12 +293,13 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 		return
 	}
 	query, args = util.PgMapQuery(stmt, map[string]interface{}{
-		"{keyword}":             keyword,
-		"{offset}":              input.Offset,
-		"{limit}":               input.GetLimit(),
-		"{exTxStatusCompleted}": coresSdk.ExchangeTxStatusCompleted,
-		"{swap1for2}":           coresSdk.ExchangeTxTypeSwap1for2,
-		"{swap2for1}":           coresSdk.ExchangeTxTypeSwap2for1,
+		"{keyword}":                 keyword,
+		"{offset}":                  input.Offset,
+		"{limit}":                   input.GetLimit(),
+		"{exTxStatusCompleted}":     coresSdk.ExchangeTxStatusCompleted,
+		"{swap1for2}":               coresSdk.ExchangeTxTypeSwap1for2,
+		"{swap2for1}":               coresSdk.ExchangeTxTypeSwap2for1,
+		"{ExchangeStatusCompleted}": coresSdk.ExchangeStatusCompleted,
 	})
 	return total, c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
 		return db.GetContext(ctx, &util.PgJsonScanWrap{outputs}, query, args...)
@@ -183,36 +308,69 @@ func (c *exchanges) ListExchanges(ctx context.Context, input *coresSdk.ListExcha
 
 func (c *exchanges) CreateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
 	stmt := `
-		INSERT INTO exchange_transactions(tx_id, exchange_id, account, type, token_amount1, token_amount2, status,
-										  price_per_token1, price_per_token2)
-		VALUES (${txId}, ${exchangeId}, ${account}, ${type}, ${tokenAmount1}, ${tokenAmount2}, ${status},
-				${pricePerToken1}, ${pricePerToken2})
+		INSERT INTO exchange_transactions(tx_id, exchange_id, sender, receiver, type, name, total_value, token_amount1, token_amount2, 
+										  amount0, amount1, fee, price_per_token1, price_per_token2, status, occured_at)
+		VALUES (${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
+				${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2},  ${status}, ${occuredAt})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
 		"{txId}":           input.TxId,
 		"{exchangeId}":     input.ExchangeId,
-		"{account}":        input.Account,
+		"{sender}":         input.Sender,
+		"{to}":             input.To,
 		"{type}":           input.Type,
+		"{name}":           input.Name,
+		"{totalValue}":     input.TotalValue,
 		"{tokenAmount1}":   input.TokenAmount1,
 		"{tokenAmount2}":   input.TokenAmount2,
-		"{status}":         input.Status,
+		"{amount0}":        input.Amount0,
+		"{amount1}":        input.Amount1,
+		"{fee}":            input.Fee,
 		"{pricePerToken1}": input.PricePerToken1,
 		"{pricePerToken2}": input.PricePerToken2,
+		"{status}":         input.Status,
+		"{occuredAt}":      input.OccuredAt,
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
-		newCtx := dbconn.WithDB(ctx, db)
-		if er := db.GetContext(newCtx, output, query, args...); er != nil {
-			return er
-		}
-		createTransactionsInput := ethSdk.CreateTransactionsInput{
-			TxId:     input.TxId,
-			Source:   ethSdk.TransactionSourceExchangeTx,
-			SourceId: output.Id,
-		}
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
 
-		return ethmodels.Transactions.Create(newCtx, &createTransactionsInput)
+func (c *exchanges) UpdateExchangeTx(ctx context.Context, input *coresSdk.CreateExchangeTxInput, output *coresSdk.CreateExchangeTxResult) (err error) {
+	stmt := `
+		UPDATE exchange_transactions SET (
+			tx_id, exchange_id, sender, receiver, type, name, total_value, token_amount1, token_amount2, 
+			amount0, amount1, fee, price_per_token1, price_per_token2, status, occured_at
+		) =  (
+			${txId}, ${exchangeId}, ${sender}, ${to}, ${type}, ${name}, ${totalValue}, ${tokenAmount1}, ${tokenAmount2}, 
+			${amount0}, ${amount1}, ${fee}, ${pricePerToken1}, ${pricePerToken2}, ${status}, ${occuredAt}
+		)
+		WHERE tx_id = ${txId}
+		RETURNING id, status;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{txId}":           input.TxId,
+		"{exchangeId}":     input.ExchangeId,
+		"{sender}":         input.Sender,
+		"{to}":             input.To,
+		"{type}":           input.Type,
+		"{name}":           input.Name,
+		"{totalValue}":     input.TotalValue,
+		"{tokenAmount1}":   input.TokenAmount1,
+		"{tokenAmount2}":   input.TokenAmount2,
+		"{amount0}":        input.Amount0,
+		"{amount1}":        input.Amount1,
+		"{fee}":            input.Fee,
+		"{pricePerToken1}": input.PricePerToken1,
+		"{pricePerToken2}": input.PricePerToken2,
+		"{status}":         input.Status,
+		"{occuredAt}":      input.OccuredAt,
+	})
+
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
 	})
 }
 

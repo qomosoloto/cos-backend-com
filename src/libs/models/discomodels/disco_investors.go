@@ -91,7 +91,7 @@ func (c *discoInvestors) ListDiscoInvestor(ctx context.Context, startupId flake.
 
 		stmt := `
 			WITH res AS (
-				SELECT di.*
+				SELECT di.*, u.public_key as wallet_addr
 				FROM disco_investors di
 				INNER JOIN users u ON di.uid = u.id
 				INNER JOIN discos d ON d.id = di.disco_id

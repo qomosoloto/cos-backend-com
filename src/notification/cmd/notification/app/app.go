@@ -1,6 +1,7 @@
 package app
 
 import (
+	"cos-backend-com/src/libs/filters"
 	notifications "cos-backend-com/src/notification"
 	"net/http"
 	"os"
@@ -71,6 +72,7 @@ func (p *appConfig) ConfigProviders() {
 }
 
 func (p *appConfig) ConfigFilters() {
+	p.Filter(filters.Cors)
 }
 
 func (p *appConfig) ConfigRoutes() {

@@ -15,10 +15,11 @@ CREATE TABLE discos
     share_token             BIGINT                                             NOT NULL,
     min_fund_raising        BIGINT                                             NOT NULL,
     add_liquidity_pool      BIGINT                                             NOT NULL,
-    total_deposit_token     BIGINT                                             NOT NULL,
+    total_deposit_token     FLOAT                                              NOT NULL,
     created_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    state                   INTEGER                  DEFAULT 0                 NOT NULL
+    state                   INTEGER                  DEFAULT 0                 NOT NULL,
+    fund_raising_addr       TEXT
 );
 
 CREATE UNIQUE INDEX discos_startup_id_uindex

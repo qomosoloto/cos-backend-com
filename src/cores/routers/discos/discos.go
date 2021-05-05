@@ -142,7 +142,24 @@ func (h *DiscosHandler) StatDiscoTotal() (res interface{}) {
 		res = apierror.HandleError(err)
 		return
 	}
-	output.Rate = float64(output.IcreaseCount) / float64(output.Count)
+	if output.IcreaseCount > 0 {
+		output.Rate = float64(output.IcreaseCount) / float64(output.Count)
+	} else {
+		output.Rate = 0
+	}
+
+	res = apires.With(&output)
+	return
+}
+
+func (h *DiscosHandler) GetDiscoSwapState(startupId flake.ID) (res interface{}) {
+	var output cores.DiscoSwapStateOutput
+	if err := discomodels.Discos.GetDiscoSwapState(h.Ctx, &startupId, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
 	res = apires.With(&output)
 	return
 }

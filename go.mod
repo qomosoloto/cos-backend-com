@@ -19,6 +19,7 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/qiniu/x v1.11.5
+	github.com/shopspring/decimal v1.2.0
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/trustmaster/goflow v0.0.0-20200418181934-7d201b964009

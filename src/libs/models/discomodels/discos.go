@@ -67,7 +67,7 @@ func (c *discos) CreateDisco(ctx context.Context, startupId flake.ID, input *cor
 func (c *discos) GetDisco(ctx context.Context, startupId flake.ID, output interface{}) (err error) {
 	stmt := `
 		WITH res AS (
-		    SELECT *
+		    SELECT *, t.state as transaction_state, d.state as state, d.id as id
 		    FROM discos d
 		        INNER JOIN transactions t ON t.source = ${source} AND source_id = d.id
 		    WHERE d.startup_id = ${startupId}
@@ -162,7 +162,7 @@ func (c *discos) ListDisco(ctx context.Context, input *cores.ListDiscosInput, ou
 
 func (c *discos) StatDiscoEthTotal(ctx context.Context, endAt time.Time, output interface{}) (err error) {
 	stmt := `
-		SELECT sum(di.eth_count)
+		SELECT coalesce(sum(di.eth_count),0)
 		FROM disco_investors di
 		INNER JOIN users u ON di.uid = u.id
 		INNER JOIN discos d ON d.id=di.disco_id
@@ -212,5 +212,29 @@ func (c *discos) StatDiscoEthIncrease(ctx context.Context, input *cores.StatDisc
 	})
 	return c.Invoke(ctx, func(db dbconn.Q) error {
 		return db.SelectContext(ctx, outputs, query, args...)
+	})
+}
+
+func (c *discos) GetDiscoSwapState(ctx context.Context, startupId *flake.ID, output interface{}) (err error) {
+	stmt := `
+	SELECT 
+		coalesce((
+			SELECT state
+        	FROM discos
+			WHERE startup_id = ${startupId}
+		),-1) disco_state,
+    	coalesce((
+			SELECT status
+        	FROM exchanges
+			WHERE startup_id = ${startupId}
+		),-1) swap_state;
+	`
+
+	query, args := util.PgMapQueryV2(stmt, map[string]interface{}{
+		"{startupId}": startupId,
+	})
+
+	return c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, query, args...)
 	})
 }

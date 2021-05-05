@@ -88,6 +88,7 @@ func (p *appConfig) ConfigProviders() {
 }
 
 func (p *appConfig) ConfigFilters() {
+	p.Filter(filters.Cors)
 }
 
 func (p *appConfig) ConfigRoutes() {
@@ -237,6 +238,19 @@ func (p *appConfig) ConfigRoutes() {
 			s.Get(exchanges.ExchangesHandler{}).Action("GetExchangeAllStatsTotal"),
 		),
 
+		s.Router("/swap",
+			s.Router("/pairs",
+				s.Post(exchanges.SwapEventsHandler{}).Action("CreatePair")),
+			s.Router("/mints",
+				s.Post(exchanges.SwapEventsHandler{}).Action("Mint")),
+			s.Router("/burns",
+				s.Post(exchanges.SwapEventsHandler{}).Action("Burn")),
+			s.Router("/swaps",
+				s.Post(exchanges.SwapEventsHandler{}).Action("Swap")),
+			s.Router("/syncs",
+				s.Post(exchanges.SwapEventsHandler{}).Action("Sync")),
+		),
+
 		s.Router("/startups",
 			s.Router("/:id",
 				s.Router("/discos",
@@ -246,6 +260,9 @@ func (p *appConfig) ConfigRoutes() {
 						s.Post(discos.DiscosInvestorsHandler{}).Filter(filters.LoginRequiredInner).Action("CreateStartupDiscoInvestor"),
 						s.Get(discos.DiscosInvestorsHandler{}).Action("ListStartupDiscoInvestor"),
 					),
+				),
+				s.Router("/discoSwapState",
+					s.Get(discos.DiscosHandler{}).Action("GetDiscoSwapState"),
 				),
 			),
 		),

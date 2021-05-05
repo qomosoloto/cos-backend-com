@@ -5,6 +5,7 @@ import (
 	"cos-backend-com/src/common/util"
 	"cos-backend-com/src/eth"
 	"cos-backend-com/src/eth/processor"
+	"cos-backend-com/src/libs/filters"
 
 	"github.com/jmoiron/sqlx"
 
@@ -20,6 +21,7 @@ func AppInit(tea *t.Strip, confPath string, files ...string) *appConfig {
 	app.ConfigLoad(app.Env, confPath, files...)
 	app.ConfigRoutes()
 	app.ConfigDB()
+	app.ConfigFilters()
 	return app
 }
 
@@ -39,4 +41,8 @@ func (p *appConfig) ConfigRoutes() {
 
 func (p *appConfig) ConfigDB() *sqlx.DB {
 	return p.ConnectDB()
+}
+
+func (p *appConfig) ConfigFilters() {
+	p.Filter(filters.Cors)
 }
