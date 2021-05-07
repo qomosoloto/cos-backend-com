@@ -11,6 +11,7 @@ import (
 	"cos-backend-com/src/cores/routers/exchanges"
 	"cos-backend-com/src/cores/routers/files"
 	"cos-backend-com/src/cores/routers/follows"
+	"cos-backend-com/src/cores/routers/proposals"
 	"cos-backend-com/src/cores/routers/startups"
 	"cos-backend-com/src/cores/routers/tags"
 	"cos-backend-com/src/libs/auth"
@@ -249,6 +250,10 @@ func (p *appConfig) ConfigRoutes() {
 				s.Post(exchanges.SwapEventsHandler{}).Action("Swap")),
 			s.Router("/syncs",
 				s.Post(exchanges.SwapEventsHandler{}).Action("Sync")),
+		),
+
+		s.Router("/proposals",
+			s.Post(proposals.ProposalEventsHandler{}).Action("CreateProposal"),
 		),
 
 		s.Router("/startups",
