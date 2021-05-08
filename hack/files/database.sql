@@ -373,6 +373,12 @@ CREATE TABLE comunion.startup_setting_revisions (
     vote_min_approval_percent integer NOT NULL,
     vote_min_duration_hours bigint NOT NULL,
     vote_max_duration_hours bigint NOT NULL,
+    proposer_type integer NOT NULL,
+    proposer_token_limit bigint NOT NULL,
+    proposal_support_percent bigint NOT NULL,
+    proposal_min_approval_percent bigint NOT NULL,
+    proposal_min_duration bigint NOT NULL,
+    proposal_max_duration bigint NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );

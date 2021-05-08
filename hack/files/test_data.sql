@@ -28,14 +28,17 @@ VALUES (comunion.fake_id('ss-1'), comunion.fake_id('s-1'), comunion.fake_id('ssr
 INSERT INTO comunion.startup_setting_revisions (id, startup_setting_id, token_name, token_symbol, token_addr,
                                                 wallet_addrs, type, vote_token_limit, vote_assign_addrs,
                                                 vote_support_percent, vote_min_approval_percent,
-                                                vote_min_duration_hours, vote_max_duration_hours, created_at,
+                                                vote_min_duration_hours, vote_max_duration_hours,
+                                                proposer_type, proposer_token_limit, proposal_support_percent,
+                                                proposal_min_approval_percent, proposal_min_duration,
+                                                proposal_max_duration, created_at,
                                                 updated_at)
 VALUES (comunion.fake_id('ssr-1'), comunion.fake_id('ss-1'), 'wujiu', 'wujiu', '0xd0818eed0cf7b2e2098ae545033f26dce75a7138', '[
   {
     "addr": "0x18fbdc8ed9018ae125f501f07d735faa0552c9d8",
     "name": "wujiu2020"
   }
-]', '', -1, '{}', 51, 51, 48, 48, '2020-06-15 16:16:44.779211', '2020-06-15 16:16:44.779211');
+]', '', -1, '{}', 51, 51, 48, 48, 1, 100, 50, 3, 5, 10, '2020-06-15 16:16:44.779211', '2020-06-15 16:16:44.779211');
 INSERT INTO comunion.transactions (id, tx_id, block_addr, source, source_id, retry_time, created_at, updated_at, state)
 VALUES (comunion.fake_id('tss-1'), '0xfb6acf18f56ef414e2681f4a99c6bc912eb1e649701f664c40354dc44fe04606', '0x3ba71ba6bd5df31af2c5905da27f34ceb1f6691a7c87847cbc1dd74f6af3f6e1',
         'startupSetting', comunion.fake_id('ssr-1'), 0, '2020-06-15 16:16:44.793364', '2020-06-15 16:16:44.793364', 2);
@@ -75,14 +78,17 @@ VALUES (comunion.fake_id('ss-3'), comunion.fake_id('s-3'), null, comunion.fake_i
 INSERT INTO comunion.startup_setting_revisions (id, startup_setting_id, token_name, token_symbol, token_addr,
                                                 wallet_addrs, type, vote_token_limit, vote_assign_addrs,
                                                 vote_support_percent, vote_min_approval_percent,
-                                                vote_min_duration_hours, vote_max_duration_hours, created_at,
+                                                vote_min_duration_hours, vote_max_duration_hours,
+                                                proposer_type, proposer_token_limit, proposal_support_percent,
+                                                proposal_min_approval_percent, proposal_min_duration,
+                                                proposal_max_duration, created_at,
                                                 updated_at)
 VALUES (comunion.fake_id('ssr-3'), comunion.fake_id('ss-3'), 'wujiu', 'wujiu', '0xd0818eed0cf7b2e2098ae545033f26dce75a7139', '[
   {
     "addr": "0x18fbdc8ed9018ae125f501f07d735faa0552c9d8",
     "name": "wujiu2020"
   }
-]', '', -3, '{}', 51, 51, 48, 48, '2020-06-15 16:16:44.779211', '2020-06-15 16:16:44.779211');
+]', '', -3, '{}', 51, 51, 48, 48, 1, 100, 50, 3, 5, 10, '2020-06-15 16:16:44.779211', '2020-06-15 16:16:44.779211');
 INSERT INTO comunion.transactions (id, tx_id, block_addr, source, source_id, retry_time, created_at, updated_at, state)
 VALUES (comunion.fake_id('tss-3'), '0xfb6acf18f56ef414e2681f4a99c6bc912eb1e649701f664c40354dc44fe04606', null,
         'startupSetting', comunion.fake_id('ssr-3'), 0, '2020-06-15 16:16:44.793364', '2020-06-15 16:16:44.793364', 3);
