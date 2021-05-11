@@ -17,3 +17,5 @@
 /hack/gnorm/export
 /bin
 /hack/build
+*.DS_Store
+.vscode/
