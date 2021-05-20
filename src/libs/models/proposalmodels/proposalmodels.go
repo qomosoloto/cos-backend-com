@@ -3,6 +3,7 @@ package proposalmodels
 import (
 	"context"
 	"cos-backend-com/src/common/dbconn"
+	"cos-backend-com/src/common/flake"
 	"cos-backend-com/src/common/util"
 	"cos-backend-com/src/libs/models"
 	coresSdk "cos-backend-com/src/libs/sdk/cores"
@@ -15,6 +16,11 @@ var Proposals = &proposals{
 
 type proposals struct {
 	dbconn.Connector
+}
+
+type ProposalModel struct {
+	Id   flake.ID `json:"id" db:"id"`
+	TxId string   `json:"txId" db:"tx_id"`
 }
 
 func (c *proposals) CreateProposal(ctx context.Context, input *coresSdk.CreateProposalInput, output *coresSdk.CreateProposalResult) (err error) {
@@ -52,6 +58,63 @@ func (c *proposals) CreateProposal(ctx context.Context, input *coresSdk.CreatePr
 	})
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
+func (c *proposals) UpdateProposalStatus(ctx context.Context, input *coresSdk.UpdateProposalStatusInput, output *coresSdk.UpdateProposalStatusResult) (err error) {
+	stmt := `
+		UPDATE proposals set status=${status} where id=${id}
+		RETURNING id;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"${status}": input.Status,
+		"${id}":     input.Id,
+	})
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
+func (c *proposals) VoteProposal(ctx context.Context, input *coresSdk.VoteProposalInput, output *coresSdk.VoteProposalResult) (err error) {
+	stmt := `
+		INSERT INTO proposal_votes(tx_id, proposal_id, amount vote_type, wallet_addr, create_at)
+		VALUES (${txId}, ${proposalId}, ${amount}, ${voteType}, ${walletAddr}, ${createAt})
+	`
+	var aProposal ProposalModel
+	if err := c.Get(ctx, input.Id, &aProposal); err != nil {
+		return
+	}
+	var voteType int
+	if input.IsApproved {
+		voteType = 1
+	} else {
+		voteType = 2
+	}
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"${txId}":       aProposal.TxId,
+		"${proposalId}": input.Id,
+		"${amount}":     input.Amount,
+		"${voteType}":   voteType,
+		"${walletAddr}": input.WalletAddr,
+		"${createAt}":   input.CreatedAt,
+	})
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
+func (c *proposals) Get(ctx context.Context, id flake.ID, output interface{}) (err error) {
+	stmt := `
+		SELECT *
+		FROM proposals
+		WHERE id = ${id};
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{id}": id,
+	})
+
+	return c.Invoke(ctx, func(db dbconn.Q) error {
 		return db.GetContext(ctx, output, query, args...)
 	})
 }

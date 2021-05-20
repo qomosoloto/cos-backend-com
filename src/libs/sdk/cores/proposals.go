@@ -6,6 +6,12 @@ import (
 
 type ProposalStatus int
 
+const (
+	UNFINISHED ProposalStatus = iota + 4
+	REJECTED
+	PASSED
+)
+
 type CreateProposalInput struct {
 	TxId                      string         `json:"txId" validate:"required"`
 	StartupId                 string         `json:"startupId" validate:"required"`
@@ -33,4 +39,24 @@ type CreateProposalInput struct {
 type CreateProposalResult struct {
 	Id     flake.ID       `json:"id" db:"id"`
 	Status ProposalStatus `json:"status" db:"status"`
+}
+
+type UpdateProposalStatusInput struct {
+	Id     flake.ID       `json:"id" db:"id"`
+	Status ProposalStatus `json:"status" db:"status"`
+}
+
+type UpdateProposalStatusResult struct {
+	Id flake.ID `json:"id" db:"id"`
+}
+
+type VoteProposalInput struct {
+	Id         flake.ID `json:"id" db:"id"`
+	Amount     float32  `json:"amount" db:"amount" validate:"required"`
+	IsApproved bool     `json:"isApproved" db:"isApproved" validate:"required"`
+	WalletAddr string   `json:"walletAddr" db:"walletAddr" validate:"required"`
+	CreatedAt  string   `json:"createdAt" db:"createdAt" validate:"required"`
+}
+
+type VoteProposalResult struct {
 }
