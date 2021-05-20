@@ -34,3 +34,25 @@ type CreateProposalResult struct {
 	Id     flake.ID       `json:"id" db:"id"`
 	Status ProposalStatus `json:"status" db:"status"`
 }
+
+type GetProposalInput struct {
+	Id   flake.ID `json:"id"`
+	TxId string   `json:"txId"`
+}
+
+type ProposalResult struct {
+	Id      flake.ID `json:"id" db:"id"`
+	TxId    string   `json:"txId" db:"tx_id"`
+	Startup struct {
+		Id          flake.ID `json:"id" db:"id"`
+		Name        string   `json:"name" db:"name"`
+		Logo        string   `json:"logo" db:"logo"`
+		TokenSymbol string   `json:"tokenSymbol" db:"token_symbol"`
+	} `json:"startup" db:"startup"`
+	Comer struct {
+		Id   flake.ID `json:"id" db:"id"`
+		Name string   `json:"name" db:"name"`
+	} `json:"comer" db:"comer"`
+	WalletAddr   string `json:"walletAddr" db:"wallet_addr"`
+	ContractAddr string `json:"contractAddr" db:"contract_addr"`
+}

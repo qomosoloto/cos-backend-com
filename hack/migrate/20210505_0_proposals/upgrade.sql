@@ -50,10 +50,8 @@ CREATE TABLE proposal_votes (
     tx_id text NOT NULL,
     proposal_id bigint NOT NULL,
     amount float8 NOT NULL,
-    vote_type int2 NOT NULL,
+    is_approved boolean NOT NULL,
     wallet_addr text NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
-
-COMMENT ON COLUMN comunion.proposal_votes.vote_type IS '1：赞成，2：反对';
