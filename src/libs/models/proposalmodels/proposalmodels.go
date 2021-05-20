@@ -71,7 +71,7 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 			pr.id,
 			pr.tx_id,
 			json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
-			json_build_object('id',pr.user_id,'name','') comer,
+			json_build_object('id',us.id,'name',us.avatar) comer,
 			pr.wallet_addr,
 			pr.contract_addr
 	    FROM proposals pr
@@ -79,6 +79,7 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 			INNER JOIN startup_settings ss ON s.id = ss.startup_id
 			INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
+			INNER JOIN users us ON pr.user_id = us.id
 	    WHERE ` + where + `
 	)
 	SELECT row_to_json(res.*) FROM res
