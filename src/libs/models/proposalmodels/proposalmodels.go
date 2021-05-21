@@ -67,6 +67,29 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 	}
 	stmt := `
 		WITH
+			votes_cte AS (
+				SELECT proposal_id, amount, is_approved, wallet_addr, created_at
+			  	FROM proposal_votes
+			  	WHERE proposal_id = ${id}
+					ORDER BY created_at
+			),
+			votes_cte_group AS (
+				SELECT vc.proposal_id, COALESCE(json_agg(vc), '[]'::json) AS votes
+				FROM votes_cte vc
+				GROUP BY vc.proposal_id
+			),
+			terms_cte AS (
+				SELECT proposal_id, amount, content
+			  	FROM proposal_terms
+			  	WHERE proposal_id = ${id}
+					ORDER BY created_at
+			),
+			terms_cte_group AS (
+				SELECT tc.proposal_id, COALESCE(json_agg(tc), '[]'::json) AS terms
+				FROM terms_cte tc
+				GROUP BY tc.proposal_id
+			),
+
 			res AS (
 	    		SELECT 
 					pr.id,
@@ -93,20 +116,17 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 					pr.payment_date,
 					pr.payment_amount,
 					pr.total_payment_amount,
-					COALESCE(json_agg(SELECT prv.amount, prv.is_approved, prv.wallet_addr, prv.created_at
-									  FROM proposal_votes prv
-									  WHERE prv.proposal_id = ${id}
-										ORDER BY prv.created_at), '[]'::json) AS votes,
-					COALESCE(json_agg(SELECT prt.amount, prt.content
-									  FROM proposal_terms prt
-									  WHERE prt.proposal_id = ${id}
-										ORDER BY prt.created_at), '[]'::json) AS terms
+					COALESCE(vcg.votes, '[]'::json) AS votes,
+					COALESCE(tcg.terms, '[]'::json) AS terms
 	    		FROM proposals pr
 					INNER JOIN startups s ON s.id = pr.startup_id
 					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 					INNER JOIN startup_settings ss ON s.id = ss.startup_id
 					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
 					INNER JOIN users us ON pr.user_id = us.id
+					LEFT JOIN votes_cte_group vcg ON vcg.proposal_id = pr.id
+					LEFT JOIN terms_cte_group tcg ON tcg.proposal_id = pr.id
+
 	    		WHERE ` + where + `
 				)
 			SELECT row_to_json(res.*) FROM res
