@@ -62,7 +62,7 @@ type ProposalResult struct {
 	Type               int            `json:"type" db:"type"`
 	Contact            string         `json:"contact" db:"contact"`
 	Description        string         `json:"description" db:"description"`
-	VoterType          string         `json:"voterType" db:"voter_type"`
+	VoterType          int            `json:"voterType" db:"voter_type"`
 	Supporters         int            `json:"supporters" db:"supporters"`
 	MinApprovalPercent int            `json:"minApprovalPercent" db:"minimum_approval_percentage"`
 	Duration           int            `json:"duration" db:"duration"`
