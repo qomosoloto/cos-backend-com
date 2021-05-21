@@ -13,10 +13,10 @@ CREATE TABLE proposals (
     contact text NOT NULL,
     description text NOT NULL,
     voter_type int4 NOT NULL,
-    support_percentage int4 NOT NULL,
+    supporters int4 NOT NULL,
     minimum_approval_percentage int4 NOT NULL,
     duration int4 NOT NULL,
-    has_payment int2 NOT NULL,
+    has_payment boolean NOT NULL,
     payment_addr text,
     payment_type int2,
     payment_months int4,
@@ -29,7 +29,7 @@ CREATE TABLE proposals (
 
 COMMENT ON COLUMN comunion.proposals.status IS '0：待确认，1：未开始，2：进行中，3：已结束，4：未成案，5：提案被拒绝，6：提案被通过';
 COMMENT ON COLUMN comunion.proposals.type IS '1：Finance，2：Governance，3：Strategy，4：Product，5：Media，6：Community，7：Node';
-COMMENT ON COLUMN comunion.proposals.voter_type IS '1：ALL，2：FounderAssign，3：Pos';
+COMMENT ON COLUMN comunion.proposals.voter_type IS '1：FounderAssign，2：POS，3：All';
 COMMENT ON COLUMN comunion.proposals.payment_type IS '1：一次性支付，2：按月支付';
 
 CREATE TABLE proposal_terms (

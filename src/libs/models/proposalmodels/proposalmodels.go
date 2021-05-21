@@ -20,10 +20,10 @@ type proposals struct {
 func (c *proposals) CreateProposal(ctx context.Context, input *coresSdk.CreateProposalInput, output *coresSdk.CreateProposalResult) (err error) {
 	stmt := `
 		INSERT INTO proposals(tx_id, startup_id, wallet_addr, contract_addr, status, title, type, user_id, contact, description,
-							  voter_type, support_percentage, minimum_approval_percentage, duration, has_payment, payment_addr,
+							  voter_type, supporters, minimum_approval_percentage, duration, has_payment, payment_addr,
 							  payment_type, payment_months, payment_date, payment_amount, total_payment_amount)
 		VALUES (${txId}, ${startupId}, ${walletAddr}, ${contractAddr}, ${status}, ${title}, ${type}, ${userId}, ${contact}, ${description},
-				${voterType}, ${supportPercentage}, ${minimumApprovalPercentage}, ${duration}, ${hasPayment}, ${paymentAddr},
+				${voterType}, ${supporters}, ${minimumApprovalPercentage}, ${duration}, ${hasPayment}, ${paymentAddr},
 				${paymentType}, ${paymentMonths}, ${paymentDate}, ${paymentAmount}, ${totalPaymentAmount})
 		RETURNING id, status;
 	`
@@ -39,7 +39,7 @@ func (c *proposals) CreateProposal(ctx context.Context, input *coresSdk.CreatePr
 		"{contact}":                   input.Contact,
 		"{description}":               input.Description,
 		"{voterType}":                 input.VoterType,
-		"{supportPercentage}":         input.SupportPercentage,
+		"{supporters}":                input.Supporters,
 		"{minimumApprovalPercentage}": input.MinimumApprovalPercentage,
 		"{duration}":                  input.Duration,
 		"{hasPayment}":                input.HasPayment,
@@ -66,23 +66,50 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 		where += "1 = 2"
 	}
 	stmt := `
-	WITH res AS (
-	    SELECT 
-			pr.id,
-			pr.tx_id,
-			json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
-			json_build_object('id',us.id,'name',us.avatar) comer,
-			pr.wallet_addr,
-			pr.contract_addr
-	    FROM proposals pr
-			INNER JOIN startups s ON s.id = pr.startup_id
-			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
-			INNER JOIN startup_settings ss ON s.id = ss.startup_id
-			INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-			INNER JOIN users us ON pr.user_id = us.id
-	    WHERE ` + where + `
-	)
-	SELECT row_to_json(res.*) FROM res
+		WITH
+			res AS (
+	    		SELECT 
+					pr.id,
+					pr.tx_id,
+					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
+					json_build_object('id',us.id,'name',us.avatar) comer,
+					pr.wallet_addr,
+					pr.contract_addr,
+					pr.created_at,
+					pr.updated_at,
+					pr.status,
+					pr.title,
+					pr.type,
+					pr.contact,
+					pr.description,
+					pr.voter_type,
+					pr.supporters,
+					pr.minimum_approval_percentage,
+					pr.duration,
+					pr.has_payment,
+					pr.payment_addr,
+					pr.payment_type,
+					pr.payment_months,
+					pr.payment_date,
+					pr.payment_amount,
+					pr.total_payment_amount,
+					COALESCE(json_agg(SELECT prv.amount, prv.is_approved, prv.wallet_addr, prv.created_at
+									  FROM proposal_votes prv
+									  WHERE prv.proposal_id = ${id}
+										ORDER BY prv.created_at), '[]'::json) AS votes,
+					COALESCE(json_agg(SELECT prt.amount, prt.content
+									  FROM proposal_terms prt
+									  WHERE prt.proposal_id = ${id}
+										ORDER BY prt.created_at), '[]'::json) AS terms
+	    		FROM proposals pr
+					INNER JOIN startups s ON s.id = pr.startup_id
+					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
+					INNER JOIN startup_settings ss ON s.id = ss.startup_id
+					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
+					INNER JOIN users us ON pr.user_id = us.id
+	    		WHERE ` + where + `
+				)
+			SELECT row_to_json(res.*) FROM res
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
 		"{id}":   input.Id,
