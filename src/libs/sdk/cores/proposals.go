@@ -14,15 +14,15 @@ type CreateProposalInput struct {
 	Status                    ProposalStatus `json:"status" validate:"required"`
 	Title                     string         `json:"title" validate:"required"`
 	Type                      int            `json:"type" validate:"required"`
-	UserId                    flake.ID       `json:"userId"`
+	UserId                    flake.ID       `json:"userId" validate:"required"`
 	Contact                   string         `json:"contact" validate:"required"`
 	Description               string         `json:"description" validate:"required"`
 	VoterType                 int            `json:"voterType" validate:"required"`
 	Supporters                int            `json:"supporters" validate:"required"`
-	MinimumApprovalPercentage int            `json:"minimumApprovalPercentage" validate:"required"`
+	MinimumApprovalPercentage int            `json:"minApprovalPercent" validate:"required"`
 	Duration                  int            `json:"duration" validate:"required"`
 	HasPayment                bool           `json:"hasPayment" validate:"required"`
-	PaymentAddr               string         `json:"PaymentAddr"`
+	PaymentAddr               string         `json:"paymentAddr"`
 	PaymentType               int            `json:"paymentType"`
 	PaymentMonths             int            `json:"paymentMonths"`
 	PaymentDate               string         `json:"paymentDate"`

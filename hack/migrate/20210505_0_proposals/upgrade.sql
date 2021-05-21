@@ -9,7 +9,7 @@ CREATE TABLE proposals (
     status int4 NOT NULL DEFAULT 0,
     title text NOT NULL,
     type int4 NOT NULL,
-    user_id bigint,
+    user_id bigint NOT NULL,
     contact text NOT NULL,
     description text NOT NULL,
     voter_type int4 NOT NULL,
