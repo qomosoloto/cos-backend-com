@@ -254,6 +254,8 @@ func (p *appConfig) ConfigRoutes() {
 
 		s.Router("/proposals",
 			s.Post(proposals.ProposalEventsHandler{}).Action("CreateProposal"),
+			s.Router("/:id",
+				s.Get(proposals.ProposalsHandler{}).Action("GetProposal")),
 		),
 
 		s.Router("/startups",
