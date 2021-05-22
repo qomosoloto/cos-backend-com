@@ -28,6 +28,10 @@ type CreateProposalInput struct {
 	PaymentDate               string         `json:"paymentDate"`
 	PaymentAmount             float64        `json:"paymentAmount"`
 	TotalPaymentAmount        float64        `json:"totalPaymentAmount"`
+	Terms                     []struct {
+		Amount  float64 `json:"amount"`
+		Content string  `json:"content"`
+	} `json:"terms"`
 }
 
 type CreateProposalResult struct {
