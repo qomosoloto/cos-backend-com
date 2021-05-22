@@ -3,6 +3,7 @@ package proposalmodels
 import (
 	"context"
 	"cos-backend-com/src/common/dbconn"
+	"cos-backend-com/src/common/flake"
 	"cos-backend-com/src/common/util"
 	"cos-backend-com/src/libs/models"
 	coresSdk "cos-backend-com/src/libs/sdk/cores"
@@ -53,6 +54,23 @@ func (c *proposals) CreateProposal(ctx context.Context, input *coresSdk.CreatePr
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
 		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
+func (c *proposals) CreateProposalWithTerms(ctx context.Context, input *coresSdk.CreateProposalInput, output *coresSdk.CreateProposalResult) (err error) {
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		newCtx := dbconn.WithDB(ctx, db)
+		if er := c.CreateProposal(newCtx, input, output); er != nil {
+			return er
+		}
+
+		var outputTerm coresSdk.CreateTermResult
+		for i := 0; i < len(input.Terms); i++ {
+			if er := c.CreateTerm(newCtx, output.Id, &input.Terms[i], &outputTerm); er != nil {
+				return er
+			}
+		}
+		return nil
 	})
 }
 
@@ -138,5 +156,22 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 
 	return c.Invoke(ctx, func(db dbconn.Q) (er error) {
 		return db.GetContext(ctx, &util.PgJsonScanWrap{output}, query, args...)
+	})
+}
+
+func (c *proposals) CreateTerm(ctx context.Context, proposalId flake.ID, input *coresSdk.CreateTermInput, output *coresSdk.CreateTermResult) (err error) {
+	stmt := `
+		INSERT INTO proposal_terms(proposal_id, amount, content)
+		VALUES (${proposalId}, ${amount}, ${content})
+		RETURNING id;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{proposalId}": proposalId,
+		"{amount}":     input.Amount,
+		"{content}":    input.Content,
+	})
+
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
 	})
 }

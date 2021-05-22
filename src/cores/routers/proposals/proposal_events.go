@@ -28,7 +28,7 @@ func (h *ProposalEventsHandler) CreateProposal() (res interface{}) {
 	}
 
 	var output cores.CreateProposalResult
-	if err := proposalmodels.Proposals.CreateProposal(h.Ctx, &input, &output); err != nil {
+	if err := proposalmodels.Proposals.CreateProposalWithTerms(h.Ctx, &input, &output); err != nil {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
 		return

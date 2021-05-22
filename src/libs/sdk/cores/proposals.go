@@ -6,37 +6,43 @@ import (
 
 type ProposalStatus int
 
+type CreateTermInput struct {
+	Amount  float64 `json:"amount"`
+	Content string  `json:"content"`
+}
+
 type CreateProposalInput struct {
-	TxId                      string         `json:"txId" validate:"required"`
-	StartupId                 string         `json:"startupId" validate:"required"`
-	WalletAddr                string         `json:"walletAddr" validate:"required"`
-	ContractAddr              string         `json:"contractAddr" validate:"required"`
-	Status                    ProposalStatus `json:"status" validate:"required"`
-	Title                     string         `json:"title" validate:"required"`
-	Type                      int            `json:"type" validate:"required"`
-	UserId                    flake.ID       `json:"userId" validate:"required"`
-	Contact                   string         `json:"contact" validate:"required"`
-	Description               string         `json:"description" validate:"required"`
-	VoterType                 int            `json:"voterType" validate:"required"`
-	Supporters                int            `json:"supporters" validate:"required"`
-	MinimumApprovalPercentage int            `json:"minApprovalPercent" validate:"required"`
-	Duration                  int            `json:"duration" validate:"required"`
-	HasPayment                bool           `json:"hasPayment" validate:"required"`
-	PaymentAddr               string         `json:"paymentAddr"`
-	PaymentType               int            `json:"paymentType"`
-	PaymentMonths             int            `json:"paymentMonths"`
-	PaymentDate               string         `json:"paymentDate"`
-	PaymentAmount             float64        `json:"paymentAmount"`
-	TotalPaymentAmount        float64        `json:"totalPaymentAmount"`
-	Terms                     []struct {
-		Amount  float64 `json:"amount"`
-		Content string  `json:"content"`
-	} `json:"terms"`
+	TxId                      string            `json:"txId" validate:"required"`
+	StartupId                 string            `json:"startupId" validate:"required"`
+	WalletAddr                string            `json:"walletAddr" validate:"required"`
+	ContractAddr              string            `json:"contractAddr" validate:"required"`
+	Status                    ProposalStatus    `json:"status" validate:"required"`
+	Title                     string            `json:"title" validate:"required"`
+	Type                      int               `json:"type" validate:"required"`
+	UserId                    flake.ID          `json:"userId" validate:"required"`
+	Contact                   string            `json:"contact" validate:"required"`
+	Description               string            `json:"description" validate:"required"`
+	VoterType                 int               `json:"voterType" validate:"required"`
+	Supporters                int               `json:"supporters" validate:"required"`
+	MinimumApprovalPercentage int               `json:"minApprovalPercent" validate:"required"`
+	Duration                  int               `json:"duration" validate:"required"`
+	HasPayment                bool              `json:"hasPayment" validate:"required"`
+	PaymentAddr               string            `json:"paymentAddr"`
+	PaymentType               int               `json:"paymentType"`
+	PaymentMonths             int               `json:"paymentMonths"`
+	PaymentDate               string            `json:"paymentDate"`
+	PaymentAmount             float64           `json:"paymentAmount"`
+	TotalPaymentAmount        float64           `json:"totalPaymentAmount"`
+	Terms                     []CreateTermInput `json:"terms"`
 }
 
 type CreateProposalResult struct {
 	Id     flake.ID       `json:"id" db:"id"`
 	Status ProposalStatus `json:"status" db:"status"`
+}
+
+type CreateTermResult struct {
+	Id flake.ID `json:"id" db:"id"`
 }
 
 type GetProposalInput struct {
