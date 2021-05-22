@@ -29,7 +29,7 @@ INSERT INTO comunion.startup_setting_revisions (id, startup_setting_id, token_na
                                                 wallet_addrs, type, vote_token_limit, vote_assign_addrs,
                                                 vote_support_percent, vote_min_approval_percent,
                                                 vote_min_duration_hours, vote_max_duration_hours,
-                                                proposer_type, proposer_token_limit, proposal_support_percent,
+                                                proposer_type, proposer_token_limit, proposal_supports,
                                                 proposal_min_approval_percent, proposal_min_duration,
                                                 proposal_max_duration, created_at,
                                                 updated_at)
@@ -79,7 +79,7 @@ INSERT INTO comunion.startup_setting_revisions (id, startup_setting_id, token_na
                                                 wallet_addrs, type, vote_token_limit, vote_assign_addrs,
                                                 vote_support_percent, vote_min_approval_percent,
                                                 vote_min_duration_hours, vote_max_duration_hours,
-                                                proposer_type, proposer_token_limit, proposal_support_percent,
+                                                proposer_type, proposer_token_limit, proposal_supports,
                                                 proposal_min_approval_percent, proposal_min_duration,
                                                 proposal_max_duration, created_at,
                                                 updated_at)
