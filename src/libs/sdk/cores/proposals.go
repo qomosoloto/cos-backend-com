@@ -2,15 +2,18 @@ package cores
 
 import (
 	"cos-backend-com/src/common/flake"
+	"cos-backend-com/src/common/validate"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type ProposalStatus int
 
-const (
-	UNFINISHED ProposalStatus = iota + 4
-	REJECTED
-	PASSED
-)
+func init() {
+	validate.Default.RegisterValidation("special-proposal-states", func(fl validator.FieldLevel) bool {
+		v := fl.Field().Int()
+		return v == 4 || v == 5 || v == 6
+	})
+}
 
 type CreateProposalInput struct {
 	TxId                      string         `json:"txId" validate:"required"`
@@ -43,7 +46,7 @@ type CreateProposalResult struct {
 
 type UpdateProposalStatusInput struct {
 	Id     flake.ID       `json:"id" db:"id"`
-	Status ProposalStatus `json:"status" db:"status"`
+	Status ProposalStatus `json:"status" db:"status" validate:"special-proposal-states"`
 }
 
 type UpdateProposalStatusResult struct {
@@ -52,6 +55,7 @@ type UpdateProposalStatusResult struct {
 
 type VoteProposalInput struct {
 	Id         flake.ID `json:"id" db:"id"`
+	TxId       string   `json:"txId" db:"tx_id"`
 	Amount     float32  `json:"amount" db:"amount" validate:"required"`
 	IsApproved bool     `json:"isApproved" db:"isApproved" validate:"required"`
 	WalletAddr string   `json:"walletAddr" db:"walletAddr" validate:"required"`
