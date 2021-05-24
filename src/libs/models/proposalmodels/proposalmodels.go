@@ -4,11 +4,13 @@ import (
 	"context"
 	"cos-backend-com/src/common/dbconn"
 	"cos-backend-com/src/common/flake"
+	json "cos-backend-com/src/common/pgencoding/json2"
 	"cos-backend-com/src/common/util"
 	"cos-backend-com/src/libs/models"
 	coresSdk "cos-backend-com/src/libs/sdk/cores"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"strings"
 )
 
 var Proposals = &proposals{
@@ -192,6 +194,16 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 
 	if input.StartupId != 0 {
 		filterStmt += ` AND pr.startup_id = ${startupId}`
+	}
+
+	var statuses []int
+	err2 := json.Unmarshal([]byte(input.Statuses), &statuses)
+	if err2 == nil {
+		if len(statuses) > 0 {
+			filterStmt += ` AND pr.status in ` + strings.Replace(
+				strings.Replace(input.Statuses, "[", "(", -1),
+				"]", ")", -1)
+		}
 	}
 
 	keyword := ""
