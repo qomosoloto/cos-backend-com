@@ -202,9 +202,9 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 
 	orderStmt := "ORDER BY %v %v"
 	if input.OrderBy == "" {
-		orderStmt = fmt.Sprintf(orderStmt, "created_at", "DESC")
+		orderStmt = fmt.Sprintf(orderStmt, "pr.created_at", "DESC")
 	} else {
-		orderField := input.OrderBy
+		orderField := "pr." + input.OrderBy
 		orderSeq := ""
 		if input.IsDesc {
 			orderSeq = "DESC"
@@ -225,7 +225,9 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 					pr.title,
 					pr.duration,
 					pr.has_payment,
-					pr.total_payment_amount
+					pr.total_payment_amount,
+					pr.created_at,
+					pr.updated_at
 	    		FROM proposals pr
 					INNER JOIN startups s ON s.id = pr.startup_id
 					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id

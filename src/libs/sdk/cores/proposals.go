@@ -107,7 +107,7 @@ type ListProposalsInput struct {
 	Keyword   string   `param:"keyword"`
 	Type      string   `param:"type" validate:"required"`
 	StartupId flake.ID `param:"startupId"`
-	Statuses  []int    `param:"statuses[]"`
+	Statuses  string   `param:"statuses[]"`
 	OrderBy   string   `param:"orderBy"`
 	IsDesc    bool     `param:"isDesc"`
 }
