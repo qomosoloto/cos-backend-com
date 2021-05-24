@@ -4,10 +4,13 @@ import (
 	"context"
 	"cos-backend-com/src/common/dbconn"
 	"cos-backend-com/src/common/flake"
+	json "cos-backend-com/src/common/pgencoding/json2"
 	"cos-backend-com/src/common/util"
 	"cos-backend-com/src/libs/models"
 	coresSdk "cos-backend-com/src/libs/sdk/cores"
+	"fmt"
 	"github.com/jmoiron/sqlx"
+	"strings"
 )
 
 var Proposals = &proposals{
@@ -113,7 +116,7 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 					pr.id,
 					pr.tx_id,
 					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
-					json_build_object('id',us.id,'name',us.avatar) comer,
+					json_build_object('id',us.id,'name','') comer,
 					pr.wallet_addr,
 					pr.contract_addr,
 					pr.created_at,
@@ -173,5 +176,113 @@ func (c *proposals) CreateTerm(ctx context.Context, proposalId flake.ID, input *
 
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
 		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
+func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *coresSdk.ListProposalsInput, outputs interface{}) (total int, err error) {
+	filterStmt := ``
+	if input.Type != "" {
+		switch input.Type {
+		case coresSdk.ListProposalsTypeAll:
+			filterStmt = "1 = 1"
+		case coresSdk.ListProposalsTypeCreated:
+			filterStmt = "pr.user_id = ${userId}"
+		case coresSdk.ListProposalsTypeVoted:
+			filterStmt = "pr.user_id = ${userId}"
+		}
+	}
+
+	if input.StartupId != 0 {
+		filterStmt += ` AND pr.startup_id = ${startupId}`
+	}
+
+	var statuses []int
+	err2 := json.Unmarshal([]byte(input.Statuses), &statuses)
+	if err2 == nil {
+		if len(statuses) > 0 {
+			filterStmt += ` AND pr.status in ` + strings.Replace(
+				strings.Replace(input.Statuses, "[", "(", -1),
+				"]", ")", -1)
+		}
+	}
+
+	keyword := ""
+	if input.Keyword != "" {
+		keyword = "%" + util.PgEscapeLike(input.Keyword) + "%"
+		filterStmt += ` AND pr.title ILIKE ${keyword}`
+	}
+
+	orderStmt := "ORDER BY %v %v"
+	if input.OrderBy == "" {
+		orderStmt = fmt.Sprintf(orderStmt, "pr.created_at", "DESC")
+	} else {
+		orderField := "pr." + input.OrderBy
+		orderSeq := ""
+		if input.IsDesc {
+			orderSeq = "DESC"
+		} else {
+			orderSeq = "ASC"
+		}
+		orderStmt = fmt.Sprintf(orderStmt, orderField, orderSeq)
+	}
+
+	stmt := ` 
+		WITH
+			res AS (
+	    		SELECT 
+					pr.id,
+					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
+					json_build_object('id',us.id,'name','') comer,
+					pr.status,
+					pr.title,
+					pr.duration,
+					pr.has_payment,
+					pr.total_payment_amount,
+					pr.created_at,
+					pr.updated_at
+	    		FROM proposals pr
+					INNER JOIN startups s ON s.id = pr.startup_id
+					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
+					INNER JOIN startup_settings ss ON s.id = ss.startup_id
+					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
+					INNER JOIN users us ON pr.user_id = us.id
+	    		WHERE ` + filterStmt + `
+					` + orderStmt + `
+				LIMIT ${limit} OFFSET ${offset}
+			)
+
+			SELECT COALESCE(json_agg(r.*), '[]'::json) FROM res r;
+	`
+
+	countStmt := `
+		SELECT count(*)
+		FROM proposals pr
+					INNER JOIN startups s ON s.id = pr.startup_id
+					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
+					INNER JOIN startup_settings ss ON s.id = ss.startup_id
+					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
+					INNER JOIN users us ON pr.user_id = us.id
+	    		WHERE ` + filterStmt
+
+	query, args := util.PgMapQuery(countStmt, map[string]interface{}{
+		"{keyword}":   keyword,
+		"{userId}":    userId,
+		"{startupId}": input.StartupId,
+	})
+
+	if err = c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
+		return db.GetContext(ctx, &total, query, args...)
+	}); err != nil {
+		return
+	}
+	query, args = util.PgMapQuery(stmt, map[string]interface{}{
+		"{keyword}":   keyword,
+		"{offset}":    input.Offset,
+		"{limit}":     input.GetLimit(),
+		"{userId}":    userId,
+		"{startupId}": input.StartupId,
+	})
+	return total, c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
+		return db.GetContext(ctx, &util.PgJsonScanWrap{outputs}, query, args...)
 	})
 }

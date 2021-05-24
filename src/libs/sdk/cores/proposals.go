@@ -2,6 +2,7 @@ package cores
 
 import (
 	"cos-backend-com/src/common/flake"
+	"cos-backend-com/src/common/pagination"
 )
 
 type ProposalStatus int
@@ -93,4 +94,44 @@ type ProposalResult struct {
 		Amount  float64 `json:"amount" db:"amount"`
 		Content string  `json:"content" db:"content"`
 	} `json:"terms" db:"terms"`
+}
+
+const (
+	ListProposalsTypeAll     string = "all"
+	ListProposalsTypeCreated string = "created"
+	ListProposalsTypeVoted   string = "voted"
+)
+
+type ListProposalsInput struct {
+	pagination.ListRequest
+	Keyword   string   `param:"keyword"`
+	Type      string   `param:"type" validate:"required"`
+	StartupId flake.ID `param:"startupId"`
+	Statuses  string   `param:"statuses[]"`
+	OrderBy   string   `param:"orderBy"`
+	IsDesc    bool     `param:"isDesc"`
+}
+
+type ListProposalsResult struct {
+	pagination.ListResult
+	Result []struct {
+		Id      flake.ID `json:"id" db:"id"`
+		Startup struct {
+			Id          flake.ID `json:"id" db:"id"`
+			Name        string   `json:"name" db:"name"`
+			Logo        string   `json:"logo" db:"logo"`
+			TokenSymbol string   `json:"tokenSymbol" db:"token_symbol"`
+		} `json:"startup" db:"startup"`
+		Comer struct {
+			Id   flake.ID `json:"id" db:"id"`
+			Name string   `json:"name" db:"name"`
+		} `json:"comer" db:"comer"`
+		Title              string         `json:"title" db:"title"`
+		Status             ProposalStatus `json:"status" db:"status"`
+		HasPayment         bool           `json:"hasPayment" db:"has_payment"`
+		TotalPaymentAmount float64        `json:"totalPaymentAmount" db:"total_payment_amount"`
+		CreatedAt          string         `json:"createdAt" db:"created_at"`
+		UpdatedAt          string         `json:"updatedAt" db:"updated_at"`
+		Duration           int            `json:"duration" db:"duration"`
+	} `json:"result"`
 }
