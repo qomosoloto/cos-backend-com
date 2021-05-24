@@ -116,7 +116,7 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 					pr.id,
 					pr.tx_id,
 					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
-					json_build_object('id',us.id,'name',us.avatar) comer,
+					json_build_object('id',us.id,'name','') comer,
 					pr.wallet_addr,
 					pr.contract_addr,
 					pr.created_at,
@@ -232,7 +232,7 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 	    		SELECT 
 					pr.id,
 					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
-					json_build_object('id',us.id,'name',us.avatar) comer,
+					json_build_object('id',us.id,'name','') comer,
 					pr.status,
 					pr.title,
 					pr.duration,
