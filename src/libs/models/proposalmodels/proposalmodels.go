@@ -23,15 +23,16 @@ type proposals struct {
 
 func (c *proposals) CreateProposal(ctx context.Context, input *coresSdk.CreateProposalInput, output *coresSdk.CreateProposalResult) (err error) {
 	stmt := `
-		INSERT INTO proposals(tx_id, startup_id, wallet_addr, contract_addr, status, title, type, user_id, contact, description,
+		INSERT INTO proposals(id, tx_id, startup_id, wallet_addr, contract_addr, status, title, type, user_id, contact, description,
 							  voter_type, supporters, minimum_approval_percentage, duration, has_payment, payment_addr,
 							  payment_type, payment_months, payment_date, payment_amount, total_payment_amount)
-		VALUES (${txId}, ${startupId}, ${walletAddr}, ${contractAddr}, ${status}, ${title}, ${type}, ${userId}, ${contact}, ${description},
+		VALUES (${id}, ${txId}, ${startupId}, ${walletAddr}, ${contractAddr}, ${status}, ${title}, ${type}, ${userId}, ${contact}, ${description},
 				${voterType}, ${supporters}, ${minimumApprovalPercentage}, ${duration}, ${hasPayment}, ${paymentAddr},
 				${paymentType}, ${paymentMonths}, ${paymentDate}, ${paymentAmount}, ${totalPaymentAmount})
 		RETURNING id, status;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{id}":                        input.Id,
 		"{txId}":                      input.TxId,
 		"{startupId}":                 input.StartupId,
 		"{walletAddr}":                input.WalletAddr,
