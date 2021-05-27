@@ -13,6 +13,7 @@ type CreateTermInput struct {
 }
 
 type CreateProposalInput struct {
+	Id                        flake.ID          `json:"id" validate:"required"`
 	TxId                      string            `json:"txId" validate:"required"`
 	StartupId                 string            `json:"startupId" validate:"required"`
 	WalletAddr                string            `json:"walletAddr" validate:"required"`
