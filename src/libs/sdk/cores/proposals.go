@@ -43,6 +43,32 @@ type CreateProposalResult struct {
 	Status ProposalStatus `json:"status" db:"status"`
 }
 
+type UpdateProposalStatusInput struct {
+	Id     flake.ID       `json:"id"`
+	Status ProposalStatus `json:"status" validate:"func=parent.Validate"`
+}
+
+func (u UpdateProposalStatusInput) Validate() bool {
+	v := u.Status
+	return v == 4 || v == 5 || v == 6
+}
+
+type UpdateProposalStatusResult struct {
+	Id flake.ID `json:"id"`
+}
+
+type VoteProposalInput struct {
+	Id         flake.ID `json:"id"`
+	TxId       string   `json:"txId" validate:"required"`
+	Amount     float32  `json:"amount" validate:"required"`
+	IsApproved bool     `json:"isApproved" validate:"required"`
+	WalletAddr string   `json:"walletAddr" validate:"required"`
+	CreatedAt  string   `json:"createdAt" validate:"required"`
+}
+
+type VoteProposalResult struct {
+}
+
 type CreateTermResult struct {
 	Id flake.ID `json:"id" db:"id"`
 }

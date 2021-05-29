@@ -61,6 +61,44 @@ func (c *proposals) CreateProposal(ctx context.Context, input *coresSdk.CreatePr
 	})
 }
 
+func (c *proposals) UpdateProposalStatus(ctx context.Context, input *coresSdk.UpdateProposalStatusInput, output *coresSdk.UpdateProposalStatusResult) (err error) {
+	stmt := `
+		UPDATE proposals set status=${status} where id=${id}
+		RETURNING id;
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{status}": input.Status,
+		"{id}":     input.Id,
+	})
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
+func (c *proposals) VoteProposal(ctx context.Context, input *coresSdk.VoteProposalInput, output *coresSdk.VoteProposalResult) (err error) {
+	stmt := `
+		INSERT INTO proposal_votes(tx_id, proposal_id, amount vote_type, wallet_addr, create_at)
+		VALUES (${txId}, ${proposalId}, ${amount}, ${voteType}, ${walletAddr}, ${createAt})
+	`
+	var voteType int
+	if input.IsApproved {
+		voteType = 1
+	} else {
+		voteType = 2
+	}
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{txId}":       input.TxId,
+		"{proposalId}": input.Id,
+		"{amount}":     input.Amount,
+		"{voteType}":   voteType,
+		"{walletAddr}": input.WalletAddr,
+		"{createAt}":   input.CreatedAt,
+	})
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+}
+
 func (c *proposals) CreateProposalWithTerms(ctx context.Context, input *coresSdk.CreateProposalInput, output *coresSdk.CreateProposalResult) (err error) {
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
 		newCtx := dbconn.WithDB(ctx, db)

@@ -258,6 +258,10 @@ func (p *appConfig) ConfigRoutes() {
 			s.Router("/:id",
 				s.Get(proposals.ProposalsHandler{}).Action("GetProposal")),
 		),
+		s.Router("/proposal/:id",
+			s.Post(proposals.ProposalEventsHandler{}).Action("UpdateProposalStatus"),
+			s.Router("/vote", s.Post(proposals.ProposalEventsHandler{}).Action("VoteProposal")),
+		),
 
 		s.Router("/startups",
 			s.Router("/:id",
