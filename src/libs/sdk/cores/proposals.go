@@ -45,21 +45,21 @@ type CreateProposalResult struct {
 }
 
 type UpdateProposalStatusInput struct {
-	Id     flake.ID       `json:"id" db:"id"`
-	Status ProposalStatus `json:"status" db:"status" validate:"special-proposal-states"`
+	Id     flake.ID       `json:"id"`
+	Status ProposalStatus `json:"status" validate:"special-proposal-states"`
 }
 
 type UpdateProposalStatusResult struct {
-	Id flake.ID `json:"id" db:"id"`
+	Id flake.ID `json:"id"`
 }
 
 type VoteProposalInput struct {
-	Id         flake.ID `json:"id" db:"id"`
-	TxId       string   `json:"txId" db:"tx_id"`
-	Amount     float32  `json:"amount" db:"amount" validate:"required"`
-	IsApproved bool     `json:"isApproved" db:"isApproved" validate:"required"`
-	WalletAddr string   `json:"walletAddr" db:"walletAddr" validate:"required"`
-	CreatedAt  string   `json:"createdAt" db:"createdAt" validate:"required"`
+	Id         flake.ID `json:"id"`
+	TxId       string   `json:"txId"`
+	Amount     float32  `json:"amount" validate:"required"`
+	IsApproved bool     `json:"isApproved" validate:"required"`
+	WalletAddr string   `json:"walletAddr" validate:"required"`
+	CreatedAt  string   `json:"createdAt" validate:"required"`
 }
 
 type VoteProposalResult struct {
