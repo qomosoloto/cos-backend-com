@@ -46,7 +46,12 @@ type CreateProposalResult struct {
 
 type UpdateProposalStatusInput struct {
 	Id     flake.ID       `json:"id"`
-	Status ProposalStatus `json:"status" validate:"special-proposal-states"`
+	Status ProposalStatus `json:"status" validate:"func=parent.Validate"`
+}
+
+func (u UpdateProposalStatusInput) Validate() bool {
+	v := u.Status
+	return v == 4 || v == 5 || v == 6
 }
 
 type UpdateProposalStatusResult struct {
@@ -55,7 +60,7 @@ type UpdateProposalStatusResult struct {
 
 type VoteProposalInput struct {
 	Id         flake.ID `json:"id"`
-	TxId       string   `json:"txId"`
+	TxId       string   `json:"txId" validate:"required"`
 	Amount     float32  `json:"amount" validate:"required"`
 	IsApproved bool     `json:"isApproved" validate:"required"`
 	WalletAddr string   `json:"walletAddr" validate:"required"`

@@ -62,8 +62,8 @@ func (c *proposals) UpdateProposalStatus(ctx context.Context, input *coresSdk.Up
 		RETURNING id;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
-		"${status}": input.Status,
-		"${id}":     input.Id,
+		"{status}": input.Status,
+		"{id}":     input.Id,
 	})
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
 		return db.GetContext(ctx, output, query, args...)
@@ -82,12 +82,12 @@ func (c *proposals) VoteProposal(ctx context.Context, input *coresSdk.VotePropos
 		voteType = 2
 	}
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
-		"${txId}":       input.TxId,
-		"${proposalId}": input.Id,
-		"${amount}":     input.Amount,
-		"${voteType}":   voteType,
-		"${walletAddr}": input.WalletAddr,
-		"${createAt}":   input.CreatedAt,
+		"{txId}":       input.TxId,
+		"{proposalId}": input.Id,
+		"{amount}":     input.Amount,
+		"{voteType}":   voteType,
+		"{walletAddr}": input.WalletAddr,
+		"{createAt}":   input.CreatedAt,
 	})
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
 		return db.GetContext(ctx, output, query, args...)
