@@ -2,18 +2,9 @@ package cores
 
 import (
 	"cos-backend-com/src/common/flake"
-	"cos-backend-com/src/common/validate"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 type ProposalStatus int
-
-func init() {
-	validate.Default.RegisterValidation("special-proposal-states", func(fl validator.FieldLevel) bool {
-		v := fl.Field().Int()
-		return v == 4 || v == 5 || v == 6
-	})
-}
 
 type CreateProposalInput struct {
 	TxId                      string         `json:"txId" validate:"required"`
