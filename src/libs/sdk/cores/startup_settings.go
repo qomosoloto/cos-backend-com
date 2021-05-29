@@ -28,7 +28,7 @@ type UpdateStartupSettingInput struct {
 	VoteMaxDurationHours       int64    `json:"voteMaxDurationHours"`
 	ProposerType               int      `json:"proposerType"`
 	ProposerTokenLimit         int64    `json:"proposerTokenLimit"`
-	ProposalSupportPercent     int      `json:"proposalSupportPercent"`
+	ProposalSupports           int      `json:"proposalSupports"`
 	ProposalMinApprovalPercent int      `json:"proposalMinApprovalPercent"`
 	ProposalMinDuration        int      `json:"proposalMinDuration"`
 	ProposalMaxDuration        int      `json:"proposalMaxDuration"`
@@ -48,7 +48,7 @@ type StartupSettingRevisionsResult struct {
 	VoteMaxDurationHours       flake.ID       `json:"voteMaxDurationHours" db:"vote_max_duration_hours"`     // vote_max_duration_hours
 	ProposerType               int            `json:"proposerType" db:"proposer_type"`
 	ProposerTokenLimit         flake.ID       `json:"proposerTokenLimit" db:"proposer_token_limit"`
-	ProposalSupportPercent     int            `json:"proposalSupportPercent" db:"proposal_support_percent"`
+	ProposalSupports           int            `json:"proposalSupports" db:"proposal_supports"`
 	ProposalMinApprovalPercent int            `json:"proposalMinApprovalPercent" db:"proposal_min_approval_percent"`
 	ProposalMinDuration        int            `json:"proposalMinDuration" db:"proposal_min_duration"`
 	ProposalMaxDuration        int            `json:"proposalMaxDuration" db:"proposal_max_duration"`
