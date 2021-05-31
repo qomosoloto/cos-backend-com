@@ -78,8 +78,8 @@ func (c *startupSettings) CreateRevision(ctx context.Context, startupSettingId f
 	//	RETURNING id;
 	//`
 	stmt := `
-		INSERT INTO startup_setting_revisions(startup_setting_id, token_name, token_symbol, token_addr, wallet_addrs, type, vote_token_limit, vote_support_percent, vote_min_approval_percent, vote_min_duration_hours, vote_max_duration_hours, proposer_type, proposer_token_limit, proposal_supports, proposal_min_approval_percent, proposal_min_duration, proposal_max_duration)
-		VALUES (${startupSettingId},${tokenName},${tokenSymbol},${tokenAddr},${walletAddrs},${type},${voteTokenLimit},${voteSupportPercent},${voteMinApprovalPercent},${voteMinDurationHours},${voteMaxDurationHours},${proposerType},${proposerTokenLimit},${proposalSupports},${proposalMinApprovalPercent},${proposalMinDuration},${proposalMaxDuration})
+		INSERT INTO startup_setting_revisions(startup_setting_id, token_name, token_symbol, token_addr, wallet_addrs, voter_type, voter_token_limit, assigned_proposers, proposer_type, proposer_token_limit, proposal_supporters, proposal_min_approval_percent, proposal_min_duration, proposal_max_duration)
+		VALUES (${startupSettingId},${tokenName},${tokenSymbol},${tokenAddr},${walletAddrs},${voterType},${voterTokenLimit},${assignedProposers},${proposerType},${proposerTokenLimit},${proposalSupporters},${proposalMinApprovalPercent},${proposalMinDuration},${proposalMaxDuration})
 		RETURNING id;
 	`
 
@@ -89,16 +89,17 @@ func (c *startupSettings) CreateRevision(ctx context.Context, startupSettingId f
 		"{tokenSymbol}":                input.TokenSymbol,
 		"{tokenAddr}":                  input.TokenAddr,
 		"{walletAddrs}":                types.JSONAny{input.WalletAddrs},
-		"{type}":                       input.VoteType,
-		"{voteTokenLimit}":             input.VoteTokenLimit,
-		"{voteAssignAddrs}":            input.VoteAssignAddrs,
-		"{voteSupportPercent}":         input.VoteSupportPercent,
-		"{voteMinApprovalPercent}":     input.VoteMinApprovalPercent,
-		"{voteMaxDurationHours}":       input.VoteMaxDurationHours,
-		"{voteMinDurationHours}":       input.VoteMinDurationHours,
+		//"{type}":                       input.VoterType,
+		"{voterType}":					input.VoterType,
+		"{voterTokenLimit}":             input.VoterTokenLimit,
+		"{assignedProposers}":            input.AssignedProposers,
+		//"{voteSupportPercent}":         input.VoteSupportPercent,
+		//"{voteMinApprovalPercent}":     input.VoteMinApprovalPercent,
+		//"{voteMaxDurationHours}":       input.VoteMaxDurationHours,
+		//"{voteMinDurationHours}":       input.VoteMinDurationHours,
 		"{proposerType}":               input.ProposerType,
 		"{proposerTokenLimit}":         input.ProposerTokenLimit,
-		"{proposalSupports}":           input.ProposalSupports,
+		"{proposalSupporters}":           input.ProposalSupporters,
 		"{proposalMinApprovalPercent}": input.ProposalMinApprovalPercent,
 		"{proposalMinDuration}":        input.ProposalMinDuration,
 		"{proposalMaxDuration}":        input.ProposalMaxDuration,
