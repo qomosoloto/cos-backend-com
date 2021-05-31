@@ -27,7 +27,12 @@ func (c *Confirmer) Process() {
 			log.Warn(err, txHash)
 		} else {
 			transactionInput.BlockAddr = receipt.BlockHash.Hex()
-			transactionInput.State = ethSdk.TransactionStateSuccess
+			if receipt.Status == 1 {
+				transactionInput.State = ethSdk.TransactionStateSuccess
+			} else {
+				transactionInput.State = ethSdk.TransactionStateFailed
+				log.Warn("transaction failed", txHash)
+			}
 		}
 		c.TransactionOutput <- transactionInput
 	}
