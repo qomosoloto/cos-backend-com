@@ -366,16 +366,16 @@ CREATE TABLE comunion.startup_setting_revisions (
     token_symbol text NOT NULL,
     token_addr text,
     wallet_addrs jsonb DEFAULT '[]'::jsonb NOT NULL,
-    type text NOT NULL,
-    vote_token_limit bigint,
-    vote_assign_addrs text[],
-    vote_support_percent integer NOT NULL,
-    vote_min_approval_percent integer NOT NULL,
-    vote_min_duration_hours bigint NOT NULL,
-    vote_max_duration_hours bigint NOT NULL,
+    voter_type int NOT NULL,
+    voter_token_limit bigint,
+--     vote_assign_addrs text[],
+    assigned_proposers text[],
+    assigned_voters text[],
+--     vote_min_duration_hours bigint NOT NULL,
+--     vote_max_duration_hours bigint NOT NULL,
     proposer_type integer NOT NULL,
     proposer_token_limit bigint NOT NULL,
-    proposal_supports bigint NOT NULL,
+    proposal_supporters bigint NOT NULL,
     proposal_min_approval_percent bigint NOT NULL,
     proposal_min_duration bigint NOT NULL,
     proposal_max_duration bigint NOT NULL,
@@ -388,7 +388,7 @@ CREATE TABLE comunion.startup_setting_revisions (
 -- Name: COLUMN startup_setting_revisions.type; Type: COMMENT; Schema: comunion; Owner: -
 --
 
-COMMENT ON COLUMN comunion.startup_setting_revisions.type IS 'FounderAssign 指定人投票 持有一定数量token的人才可以投票;POS;ALL 所有人投票';
+COMMENT ON COLUMN comunion.startup_setting_revisions.voter_type IS 'FounderAssign 指定人投票 持有一定数量token的人才可以投票;POS;ALL 所有人投票';
 
 
 --
