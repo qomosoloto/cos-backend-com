@@ -119,11 +119,15 @@ func (c *discos) ListDisco(ctx context.Context, input *cores.ListDiscosInput, ou
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 			INNER JOIN startup_settings ss ON ss.startup_id = s.id
 			INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-		WHERE d.state IN (${discoStateWaitingStart},${discoStateInprogress})` + filterStmt
+		WHERE d.state IN (${discoStateEnabled}, ${discoStateWaitingForStart}, ${discoStateFundraisingSuccess}, ${discoStateFundraisingFailed}, ${discoStateFundraising}, ${discoStateFundraisingComplete})` + filterStmt
 	query, args := util.PgMapQueryV2(countStmt, map[string]interface{}{
-		"{keyword}":                keyword,
-		"{discoStateWaitingStart}": cores.DiscoStateWaitingForStart,
-		"{discoStateInprogress}":   cores.DiscoStateInProgress,
+		"{keyword}":                       keyword,
+		"{discoStateEnabled}":             cores.DiscoStateEnabled,
+		"{discoStateWaitingForStart}":     cores.DiscoStateWaitingForStart,
+		"{discoStateFundraisingSuccess}":  cores.DiscoStateFundraisingSuccess,
+		"{discoStateFundraisingFailed}":   cores.DiscoStateFundraisingFailed,
+		"{discoStateFundraising}":         cores.DiscoStateFundraising,
+		"{discoStateFundraisingComplete}": cores.DiscoStateFundraisingComplete,
 	})
 
 	if err = c.Invoke(ctx, func(db dbconn.Q) error {
@@ -141,16 +145,20 @@ func (c *discos) ListDisco(ctx context.Context, input *cores.ListDiscosInput, ou
 					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 					INNER JOIN startup_settings ss ON ss.startup_id = s.id
 					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-				WHERE d.state IN (${discoStateWaitingStart},${discoStateInprogress})` + filterStmt + orderStmt + `
+				WHERE d.state IN (${discoStateEnabled}, ${discoStateWaitingForStart}, ${discoStateFundraisingSuccess}, ${discoStateFundraisingFailed}, ${discoStateFundraising}, ${discoStateFundraisingComplete})` + filterStmt + orderStmt + `
 				LIMIT ${limit} OFFSET ${offset}
 			)SELECT json_agg(r) FROM res r;
 		`
 		query, args = util.PgMapQueryV2(stmt, map[string]interface{}{
-			"{keyword}":                keyword,
-			"{limit}":                  input.GetLimit(),
-			"{offset}":                 input.Offset,
-			"{discoStateWaitingStart}": cores.DiscoStateWaitingForStart,
-			"{discoStateInprogress}":   cores.DiscoStateInProgress,
+			"{keyword}":                       keyword,
+			"{limit}":                         input.GetLimit(),
+			"{offset}":                        input.Offset,
+			"{discoStateEnabled}":             cores.DiscoStateEnabled,
+			"{discoStateWaitingForStart}":     cores.DiscoStateWaitingForStart,
+			"{discoStateFundraisingSuccess}":  cores.DiscoStateFundraisingSuccess,
+			"{discoStateFundraisingFailed}":   cores.DiscoStateFundraisingFailed,
+			"{discoStateFundraising}":         cores.DiscoStateFundraising,
+			"{discoStateFundraisingComplete}": cores.DiscoStateFundraisingComplete,
 		})
 		err = c.Invoke(ctx, func(db dbconn.Q) error {
 			return db.GetContext(ctx, &util.PgJsonScanWrap{outputs}, query, args...)

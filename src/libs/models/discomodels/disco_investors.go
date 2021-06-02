@@ -31,11 +31,11 @@ func (c *discoInvestors) CreateDiscoInvestor(ctx context.Context, startupId, uid
 		SELECT ${id}, gdc.id, ${uid}, ${ethCount} FROM get_disco_cte gdc;
 	`
 	query, args := util.PgMapQueryV2(stmt, map[string]interface{}{
-		"{id}":                   input.Id,
-		"{startupId}":            startupId,
-		"{uid}":                  uid,
-		"{ethCount}":             input.EthCount,
-		"{discoStateInprogress}": cores.DiscoStateInProgress,
+		"{id}":                input.Id,
+		"{startupId}":         startupId,
+		"{uid}":               uid,
+		"{ethCount}":          input.EthCount,
+		"{discoStateEnabled}": cores.DiscoStateEnabled,
 	})
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
 		newCtx := dbconn.WithDB(ctx, db)

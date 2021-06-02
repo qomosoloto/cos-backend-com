@@ -11,10 +11,14 @@ type DiscoState int
 
 const (
 	DiscoStateDefault DiscoState = iota
+	DiscoStateWaitingForEnable
+	DiscoStateCreateFailed
+	DiscoStateEnabled
 	DiscoStateWaitingForStart
-	DiscoStateInProgress
-	DiscoStateFailed
-	DiscoStateSuccessed
+	DiscoStateFundraisingSuccess
+	DiscoStateFundraisingFailed
+	DiscoStateFundraising
+	DiscoStateFundraisingComplete
 )
 
 // DiscosModel represents a row from 'discos'.
