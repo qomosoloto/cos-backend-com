@@ -395,7 +395,6 @@ COMMENT ON COLUMN comunion.startup_setting_revisions.voter_type IS 'FounderAssig
 COMMENT ON COLUMN comunion.startup_setting_revisions.proposer_type IS 'FounderAssign;POS;ALL';
 
 
-
 --
 -- Name: startup_settings; Type: TABLE; Schema: comunion; Owner: -
 --
