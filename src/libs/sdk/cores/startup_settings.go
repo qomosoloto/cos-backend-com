@@ -11,30 +11,25 @@ type StartupSettingResult struct {
 }
 
 type UpdateStartupSettingInput struct {
-	TxId        string `json:"txId"`
-	TokenName   string `json:"tokenName"`
-	TokenSymbol string `json:"tokenSymbol"`
-	TokenAddr   string `json:"tokenAddr"`
+	TxId        string `json:"txId" validate:"required"`
+	TokenName   string `json:"tokenName" validate:"required"`
+	TokenSymbol string `json:"tokenSymbol" validate:"required"`
+	TokenAddr   string `json:"tokenAddr" validate:"required"`
 	WalletAddrs []struct {
-		Name string `json:"name"`
-		Addr string `json:"addr"`
+		Name string `json:"name" validate:"required"`
+		Addr string `json:"addr" validate:"required"`
 	} `json:"walletAddrs"`
-	AssignedProposers []string `json:"assigned_proposers"`
+	AssignedProposers []string `json:"assignedProposers"`
 
-	VoterType                   int   `json:"voterType"`
-	VoterTokenLimit             int64    `json:"voterTokenLimit"`
-	AssignedVoters				[]string `json:"assigned_voters"`
-	//VoteAssignAddrs            []string `json:"voteAssignAddrs"`
-	//VoteSupportPercent         int      `json:"voteSupportPercent"`
-	//VoteMinApprovalPercent     int      `json:"voteMinApprovalPercent"`
-	//VoteMinDurationHours       int64    `json:"voteMinDurationHours"`
-	//VoteMaxDurationHours       int64    `json:"voteMaxDurationHours"`
-	ProposerType               int      `json:"proposerType"`
+	VoterType                  int      `json:"voterType" validate:"required"`
+	VoterTokenLimit            int64    `json:"voterTokenLimit"`
+	AssignedVoters             []string `json:"assignedVoters"`
+	ProposerType               int      `json:"proposerType" validate:"required"`
 	ProposerTokenLimit         int64    `json:"proposerTokenLimit"`
-	ProposalSupporters           int      `json:"proposalSupporters"`
-	ProposalMinApprovalPercent int      `json:"proposalMinApprovalPercent"`
-	ProposalMinDuration        int      `json:"proposalMinDuration"`
-	ProposalMaxDuration        int      `json:"proposalMaxDuration"`
+	ProposalSupporters         int      `json:"proposalSupporters" validate:"required"`
+	ProposalMinApprovalPercent int      `json:"proposalMinApprovalPercent" validate:"required"`
+	ProposalMinDuration        int      `json:"proposalMinDuration" validate:"required"`
+	ProposalMaxDuration        int      `json:"proposalMaxDuration" validate:"required"`
 }
 
 type StartupSettingRevisionsResult struct {
@@ -42,19 +37,13 @@ type StartupSettingRevisionsResult struct {
 	TokenSymbol                string         `json:"tokenSymbol" db:"token_symbol"` // token_symbol
 	TokenAddr                  *string        `json:"tokenAddr" db:"token_addr"`     // token_addr
 	WalletAddrs                types.JSONText `json:"walletAddrs" db:"wallet_addrs"`
-	//Type                       string         `json:"type" db:"type"`
-	AssignedProposers			[]string		`json:"assignedProposers" db:"assigned_proposers"`
-	AssignedVoters				[]string		`json:"assignedVoters" db:"assigned_voters"`
-	VoterType					int				`json:"voterType" db:"voter_type"`
-	VoterTokenLimit             *flake.ID      `json:"voterTokenLimit" db:"voter_token_limit"`                  // vote_token_limit
-	//VoteAssignAddrs            []string       `json:"voteAssignAddrs" db:"vote_assign_addrs"`                // vote_assign_addrs
-	//VoteSupportPercent         int            `json:"voteSupportPercent" db:"vote_support_percent"`          // vote_support_percent
-	//VoteMinApprovalPercent     int            `json:"voteMinApprovalPercent" db:"vote_min_approval_percent"` // vote_min_approval_percent
-	//VoteMinDurationHours       flake.ID       `json:"voteMinDurationHours" db:"vote_min_duration_hours"`     // vote_min_duration_hours
-	//VoteMaxDurationHours       flake.ID       `json:"voteMaxDurationHours" db:"vote_max_duration_hours"`     // vote_max_duration_hours
+	AssignedProposers          []string       `json:"assignedProposers" db:"assigned_proposers"`
+	AssignedVoters             []string       `json:"assignedVoters" db:"assigned_voters"`
+	VoterType                  int            `json:"voterType" db:"voter_type"`
+	VoterTokenLimit            *flake.ID      `json:"voterTokenLimit" db:"voter_token_limit"` // vote_token_limit
 	ProposerType               int            `json:"proposerType" db:"proposer_type"`
 	ProposerTokenLimit         flake.ID       `json:"proposerTokenLimit" db:"proposer_token_limit"`
-	ProposalSupporters           int            `json:"proposalSupporters" db:"proposal_supporters"`
+	ProposalSupporters         int            `json:"proposalSupporters" db:"proposal_supporters"`
 	ProposalMinApprovalPercent int            `json:"proposalMinApprovalPercent" db:"proposal_min_approval_percent"`
 	ProposalMinDuration        int            `json:"proposalMinDuration" db:"proposal_min_duration"`
 	ProposalMaxDuration        int            `json:"proposalMaxDuration" db:"proposal_max_duration"`
