@@ -67,7 +67,12 @@ func (c *discos) CreateDisco(ctx context.Context, startupId flake.ID, input *cor
 func (c *discos) GetDisco(ctx context.Context, startupId flake.ID, output interface{}) (err error) {
 	stmt := `
 		WITH res AS (
-		    SELECT *, t.state as transaction_state, d.state as state, d.id as id
+		    SELECT *, t.state as transaction_state, d.state as state, d.id as id,
+				(CASE
+					WHEN d.state = 4 AND d.fund_raising_ended_at < NOW() THEN 8
+					WHEN d.state = 4 AND d.fund_raising_started_at < NOW() THEN 7
+					ELSE d.state
+				END) as state
 		    FROM discos d
 		        INNER JOIN transactions t ON t.source = ${source} AND source_id = d.id
 		    WHERE d.startup_id = ${startupId}
@@ -139,7 +144,12 @@ func (c *discos) ListDisco(ctx context.Context, input *cores.ListDiscosInput, ou
 	if total > 0 {
 		stmt := `
 			WITH res AS (
-				SELECT d.*,json_build_object('id', d.startup_id, 'name', s.name,'log', sr.logo, 'token_symbol', ssr.token_symbol) startup
+				SELECT d.*,json_build_object('id', d.startup_id, 'name', s.name,'log', sr.logo, 'token_symbol', ssr.token_symbol) startup,
+				(CASE
+					WHEN d.state = 4 AND d.fund_raising_ended_at < NOW() THEN 8
+					WHEN d.state = 4 AND d.fund_raising_started_at < NOW() THEN 7
+					ELSE d.state
+				END) as state
 				FROM discos d
 					INNER JOIN startups s ON d.startup_id = s.id
 					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
@@ -227,7 +237,12 @@ func (c *discos) GetDiscoSwapState(ctx context.Context, startupId *flake.ID, out
 	stmt := `
 	SELECT 
 		coalesce((
-			SELECT state
+			SELECT
+			(CASE
+				WHEN state = 4 AND fund_raising_ended_at < NOW() THEN 8
+				WHEN state = 4 AND fund_raising_started_at < NOW() THEN 7
+				ELSE state
+			END) as state
         	FROM discos
 			WHERE startup_id = ${startupId}
 		),-1) disco_state,
