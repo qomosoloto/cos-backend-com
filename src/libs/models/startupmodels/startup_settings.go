@@ -10,6 +10,7 @@ import (
 	"cos-backend-com/src/libs/models/ethmodels"
 	coresSdk "cos-backend-com/src/libs/sdk/cores"
 	ethSdk "cos-backend-com/src/libs/sdk/eth"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -77,6 +78,12 @@ func (c *startupSettings) CreateRevision(ctx context.Context, startupSettingId f
 		VALUES (${startupSettingId},${tokenName},${tokenSymbol},${tokenAddr},${walletAddrs},${voterType},${voterTokenLimit},ARRAY [${assignedProposers}],ARRAY [${assignedVoters}],${proposerType},${proposerTokenLimit},${proposalSupporters},${proposalMinApprovalPercent},${proposalMinDuration},${proposalMaxDuration})
 		RETURNING id;
 	`
+	if input.AssignedProposers == nil {
+		stmt = strings.ReplaceAll(stmt, "ARRAY [${assignedProposers}]", "NULL")
+	}
+	if input.AssignedVoters == nil {
+		stmt = strings.ReplaceAll(stmt, "ARRAY [${assignedVoters}]", "NULL")
+	}
 
 	query, args := util.PgMapQueryV2(stmt, map[string]interface{}{
 		"{startupSettingId}":           startupSettingId,
