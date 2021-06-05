@@ -6,6 +6,8 @@ import (
 	"cos-backend-com/src/cores/routers"
 	"cos-backend-com/src/libs/apierror"
 	"cos-backend-com/src/libs/models/proposalmodels"
+	"cos-backend-com/src/libs/models/usermodels"
+	"cos-backend-com/src/libs/sdk/account"
 	"cos-backend-com/src/libs/sdk/cores"
 	"github.com/wujiu2020/strip/utils/apires"
 	"net/http"
@@ -27,6 +29,14 @@ func (h *ProposalEventsHandler) CreateProposal() (res interface{}) {
 		res = apierror.HandleError(err)
 		return
 	}
+
+	var user account.UsersModel
+	if err := usermodels.Users.GetBypublicKey(h.Ctx, input.WalletAddr, &user); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+	input.UserId = user.Id
 
 	var output cores.CreateProposalResult
 	if err := proposalmodels.Proposals.CreateProposalWithTerms(h.Ctx, &input, &output); err != nil {
