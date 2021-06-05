@@ -33,6 +33,7 @@ type UpdateStartupSettingInput struct {
 }
 
 type StartupSettingRevisionsResult struct {
+	Id                         *flake.ID       `json:"id" db:"id"`
 	TokenName                  string         `json:"tokenName" db:"token_name"`     // token_name
 	TokenSymbol                string         `json:"tokenSymbol" db:"token_symbol"` // token_symbol
 	TokenAddr                  *string        `json:"tokenAddr" db:"token_addr"`     // token_addr
