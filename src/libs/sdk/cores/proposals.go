@@ -18,7 +18,7 @@ type CreateProposalInput struct {
 	StartupId                 string            `json:"startupId" validate:"required"`
 	WalletAddr                string            `json:"walletAddr" validate:"required"`
 	ContractAddr              string            `json:"contractAddr" validate:"required"`
-	Status                    ProposalStatus    `json:"status" validate:"required"`
+	Status                    *ProposalStatus   `json:"status" validate:"required"`
 	Title                     string            `json:"title" validate:"required"`
 	Type                      int               `json:"type" validate:"required"`
 	UserId                    flake.ID          `json:"userId"`
@@ -28,7 +28,7 @@ type CreateProposalInput struct {
 	Supporters                int               `json:"supporters" validate:"required"`
 	MinimumApprovalPercentage int               `json:"minApprovalPercent" validate:"required"`
 	Duration                  int               `json:"duration" validate:"required"`
-	HasPayment                bool              `json:"hasPayment" validate:"required"`
+	HasPayment                *bool             `json:"hasPayment" validate:"required"`
 	PaymentAddr               string            `json:"paymentAddr"`
 	PaymentType               int               `json:"paymentType"`
 	PaymentMonths             int               `json:"paymentMonths"`
