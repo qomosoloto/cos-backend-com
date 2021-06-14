@@ -5,6 +5,7 @@ import (
 	"cos-backend-com/src/cores/routers"
 	"cos-backend-com/src/libs/apierror"
 	"cos-backend-com/src/libs/models/exchangemodels"
+	"cos-backend-com/src/libs/models/startupmodels"
 	"cos-backend-com/src/libs/sdk/cores"
 	"github.com/shopspring/decimal"
 	"github.com/wujiu2020/strip/utils/apires"
@@ -29,6 +30,7 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 		return
 	}
 
+	/* 2021-06-14 paul
 	var exchangeinput cores.GetExchangeInput
 	exchangeinput.TxId = pairinput.TxId
 	var exchangeresult cores.ExchangeResult
@@ -36,11 +38,18 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 		h.Log.Warn(err)
 		res = apierror.HandleError(err)
 		return
+	}*/
+	/* 2021-06-14 paul */
+	startupId, err := startupmodels.Startups.GetId(h.Ctx, pairinput.Token0.Address)
+	if err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
 	}
 
 	var input cores.CreateExchangeInput
 	input.TxId = pairinput.TxId
-	input.StartupId = exchangeresult.Startup.Id
+	input.StartupId = startupId
 	input.PairAddress = pairinput.PairAddress
 	input.TokenName1 = pairinput.Token0.Name
 	input.TokenSymbol1 = pairinput.Token0.Symbol
@@ -58,6 +67,7 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 		return
 	}
 
+	/* 2021-06-14 paul
 	var output cores.CreateExchangeResult
 	if exchangeresult.Status != cores.ExchangeStatusCompleted {
 		if err := exchangemodels.Exchanges.UpdateExchange(h.Ctx, &input, &output); err != nil {
@@ -65,6 +75,13 @@ func (h *SwapEventsHandler) CreatePair() (res interface{}) {
 			res = apierror.HandleError(err)
 			return
 		}
+	}*/
+	/* 2021-06-14 paul */
+	var output cores.CreateExchangeResult
+	if err := exchangemodels.Exchanges.CreateExchange(h.Ctx, &input, &output); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
 	}
 
 	res = apires.With(&output, http.StatusOK)

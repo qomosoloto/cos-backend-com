@@ -485,3 +485,22 @@ func (c *startups) GetToken(ctx context.Context, startupId flake.ID, output inte
 	})
 	return
 }
+
+func (c *startups) GetId(ctx context.Context, tokenAddr string) (startupId flake.ID, err error) {
+	stmt := `
+		SELECT ss.startup_id
+		FROM startup_setting_revisions ssr
+			LEFT JOIN startup_settings ss ON ss.id = ssr.startup_setting_id
+		WHERE token_addr = '${tokenAddr}' AND ss.confirming_revision_id = ssr.id
+		ORDER BY ssr.created_at
+		LIMIT 1
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{tokenAddr}": tokenAddr,
+	})
+
+	err = c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, &startupId, query, args...)
+	})
+	return
+}
