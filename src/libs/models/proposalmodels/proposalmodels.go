@@ -308,6 +308,8 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 		"{userId}":    userId,
 		"{startupId}": input.StartupId,
 	})
+	fmt.Println("count-query=", query)
+	fmt.Println("count-args=", args)
 
 	if err = c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
 		return db.GetContext(ctx, &total, query, args...)
@@ -321,6 +323,9 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 		"{userId}":    userId,
 		"{startupId}": input.StartupId,
 	})
+	fmt.Println("query=", query)
+	fmt.Println("args=", args)
+
 	return total, c.Invoke(ctx, func(db *sqlx.Tx) (er error) {
 		return db.GetContext(ctx, &util.PgJsonScanWrap{outputs}, query, args...)
 	})
