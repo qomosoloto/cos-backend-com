@@ -7,7 +7,6 @@ import (
 	"cos-backend-com/src/libs/apierror"
 	"cos-backend-com/src/libs/models/proposalmodels"
 	"cos-backend-com/src/libs/sdk/cores"
-	"fmt"
 	"github.com/wujiu2020/strip/utils/apires"
 	"net/http"
 )
@@ -42,7 +41,6 @@ func (h *ProposalsHandler) ListProposals() (res interface{}) {
 
 	var uid flake.ID
 	h.Ctx.Find(&uid, "uid")
-	fmt.Println("uid=", uid)
 
 	var output cores.ListProposalsResult
 	total, err := proposalmodels.Proposals.ListProposals(h.Ctx, uid, &params, &output.Result)
