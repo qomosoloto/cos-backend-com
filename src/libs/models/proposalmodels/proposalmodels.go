@@ -227,7 +227,7 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 		case coresSdk.ListProposalsTypeCreated:
 			filterStmt = "pr.user_id = ${userId}"
 		case coresSdk.ListProposalsTypeVoted:
-			filterStmt = "pr.user_id = ${userId}"
+			filterStmt = "pr.id in (SELECT pv.proposal_id FROM proposal_votes pv INNER JOIN users u ON pv.wallet_addr = u.public_key WHERE u.id = ${userId})"
 		}
 	}
 
