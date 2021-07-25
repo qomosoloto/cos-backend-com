@@ -140,6 +140,7 @@ func (c *bounties) Query(ctx context.Context, uid flake.ID, isOwner bool, m inte
 	WITH bounties_cte AS (
 		SELECT b.*,
 			t.block_addr,
+			t.tx_id,
 			t.state transaction_state,
 			json_build_object('id',s.id,'name',s.name ,'logo' ,sr.logo) startup,
 			json_build_object('id',b.user_id,'name',coalesce(h.name,u.public_key),'is_hunter',CASE WHEN h.name IS NOT NULL THEN TRUE ELSE FALSE END) created_by,
