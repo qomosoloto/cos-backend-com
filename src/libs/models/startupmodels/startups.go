@@ -42,6 +42,7 @@ func (c *startups) List(ctx context.Context, input *coresSdk.ListStartupsInput, 
 				sr.mission,
 				sr.description_addr,
 				c AS category,
+				s.created_at,
 				(SELECT count(*) FROM bounties b WHERE s.id = b.startup_id) AS bounty_count,
 				(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count
 			FROM startups s
@@ -238,6 +239,7 @@ func (c *startups) Get(ctx context.Context, id flake.ID, output interface{}) (er
 			c   AS category,
 			ssr AS settings,
 			t1  AS transaction,
+			s.created_at,
 			(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count
 	    FROM startups s
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
@@ -274,6 +276,7 @@ func (c *startups) GetMe(ctx context.Context, uid, id flake.ID, output interface
 			c   AS category,
 			ssr AS settings,
 			t1  AS transaction,
+			s.created_at,
 			(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count
 	    FROM startups s
 			LEFT JOIN startup_revisions sr ON s.confirming_revision_id = sr.id
