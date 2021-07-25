@@ -4,6 +4,7 @@ import (
 	"cos-backend-com/src/common/flake"
 	"cos-backend-com/src/common/pagination"
 	"cos-backend-com/src/libs/sdk/eth"
+	"time"
 )
 
 type StartUpState int
@@ -36,6 +37,7 @@ type StartUpResult struct {
 	Logo            string                        `json:"logo" db:"logo"`
 	DescriptionAddr string                        `json:"descriptionAddr" db:"description_addr"`
 	FollowCount     int                           `json:"followCount" db:"follow_count"`
+	CreatedAt       time.Time                     `json:"createdAt" db:"created_at"`
 	Category        CategoriesResult              `json:"category" db:"category"`
 	Setting         StartupSettingRevisionsResult `json:"settings" db:"settings"`
 	Transaction     eth.TransactionsResult        `json:"transaction" db:"transaction"`
@@ -75,6 +77,7 @@ type ListStartupsResult struct {
 		IsIRO           bool             `json:"isIRO" db:"is_iro"`
 		BountyCount     int              `json:"bountyCount" db:"bounty_count"`
 		FollowCount     int              `json:"followCount" db:"follow_count"`
+		CreatedAt       time.Time        `json:"createdAt" db:"created_at"`
 	} `json:"result"`
 }
 
