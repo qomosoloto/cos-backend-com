@@ -216,3 +216,27 @@ func (h *StartUpsHandler) GetPayTokens(id flake.ID) (res interface{}) {
 	res = apires.With(cores.AvailableTokens(output), http.StatusOK)
 	return
 }
+
+func (h *StartUpsHandler) IsTokenAddrBinding() (res interface{}) {
+
+	var params cores.IsTokenAddrBindingInput
+	h.Params.BindValuesToStruct(&params)
+
+	if err := validate.Default.Struct(params); err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	var output cores.IsTokenAddrBindingResult
+	err := startupmodels.Startups.IsTokenAddrBinding(h.Ctx, &params, &output.Id)
+	if err != nil {
+		h.Log.Warn(err)
+		res = apierror.HandleError(err)
+		return
+	}
+
+	res = apires.With(&output, http.StatusOK)
+	return
+
+}

@@ -91,3 +91,13 @@ type StartupShortResult struct {
 	Logo        string   `json:"logo" db:"logo"`
 	TokenSymbol string   `json:"tokenSymbol" db:"token_symbol"`
 }
+
+type IsTokenAddrBindingInput struct {
+
+	TokenAddr string `param:"tokenAddr" validate:"required"`
+
+}
+
+type IsTokenAddrBindingResult struct {
+	Id flake.ID `json:"id" db:"id"`
+}

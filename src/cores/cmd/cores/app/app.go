@@ -133,6 +133,12 @@ func (p *appConfig) ConfigRoutes() {
 			s.Router("/:id:restore",
 				s.Post(startups.StartUpsHandler{}).Action("Restore"),
 			),
+			s.Router("/tokenAddr",
+				s.Router("/isBinding",
+					s.Get(startups.StartUpsHandler{}).Action("IsTokenAddrBinding"),
+				),
+
+			),
 			//restore startup settings
 			s.Router("/:id/settings:restore",
 				s.Post(startups.StartUpSettingsHandler{}).Action("Restore"),
