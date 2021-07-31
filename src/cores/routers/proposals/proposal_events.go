@@ -54,6 +54,7 @@ func (h *ProposalEventsHandler) UpdateProposalOver() (res interface{}) {
 	if err := proposalmodels.Proposals.UpdateProposalOver(h.Ctx, &output.Done); err != nil {
 		h.panicIf(err)
 	}
+	output.Done = true
 	res = apires.With(&output, http.StatusOK)
 	return
 }
