@@ -506,3 +506,22 @@ func (c *startups) GetId(ctx context.Context, tokenAddr string) (startupId flake
 	})
 	return
 }
+
+func (c *startups) IsTokenAddrBinding(ctx context.Context, input *coresSdk.IsTokenAddrBindingInput, output interface{}) (err error) {
+	stmt := `
+		SELECT case WHEN res.amount > 1 then (SELECT id from startup_setting_revisions where token_addr=${tokenAddr} limit 1) else 0 END
+		FROM 
+		(
+			SELECT count(*) as amount from startup_setting_revisions WHERE token_addr=${tokenAddr}
+
+		) as res
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{tokenAddr}": input.TokenAddr,
+	})
+
+	err = c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, output, query, args...)
+	})
+	return
+}
