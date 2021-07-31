@@ -61,17 +61,18 @@ func (c *proposals) CreateProposal(ctx context.Context, input *coresSdk.CreatePr
 	})
 }
 
-func (c *proposals) UpdateProposalOver(ctx context.Context) (err error) {
+func (c *proposals) UpdateProposalOver(ctx context.Context, output interface{}) (err error) {
 	stmt := `
 		UPDATE proposals set status = ${over}
 		WHERE now() > created_at + cast(duration || 'days' as interval) and status = ${voting}
+		RETURNING true AS done;
 	`
 	query, args := util.PgMapQuery(stmt, map[string]interface{}{
 		"{over}":   coresSdk.ProposalStatusOver,
 		"{voting}": coresSdk.ProposalStatusVoting,
 	})
 	return c.Invoke(ctx, func(db *sqlx.Tx) error {
-		return db.GetContext(ctx, nil, query, args...)
+		return db.GetContext(ctx, output, query, args...)
 	})
 }
 

@@ -50,10 +50,11 @@ func (h *ProposalEventsHandler) CreateProposal() (res interface{}) {
 }
 
 func (h *ProposalEventsHandler) UpdateProposalOver() (res interface{}) {
-	if err := proposalmodels.Proposals.UpdateProposalOver(h.Ctx); err != nil {
+	var output cores.ProposalOverResult
+	if err := proposalmodels.Proposals.UpdateProposalOver(h.Ctx, &output.Done); err != nil {
 		h.panicIf(err)
 	}
-	res = apires.With(nil, http.StatusOK)
+	res = apires.With(&output, http.StatusOK)
 	return
 }
 

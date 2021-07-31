@@ -169,3 +169,7 @@ type ListProposalsResult struct {
 		Duration           int            `json:"duration" db:"duration"`
 	} `json:"result"`
 }
+
+type ProposalOverResult struct {
+	Done bool `json:"done" db:"done"`
+}
