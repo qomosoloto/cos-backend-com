@@ -257,6 +257,8 @@ func (p *appConfig) ConfigRoutes() {
 			s.Post(proposals.ProposalEventsHandler{}).Action("CreateProposal"),
 			s.Router("/:id",
 				s.Get(proposals.ProposalsHandler{}).Action("GetProposal")),
+			s.Router("/over",
+				s.Put(proposals.ProposalEventsHandler{}).Action("UpdateProposalOver")),
 		),
 		s.Router("/proposals",
 			s.Filter(filters.LoginRequiredInner),

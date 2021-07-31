@@ -7,6 +7,13 @@ import (
 
 type ProposalStatus int
 
+const (
+	ProposalStatusPending    ProposalStatus = 0
+	ProposalStatusNotStarted ProposalStatus = 1
+	ProposalStatusVoting     ProposalStatus = 2
+	ProposalStatusOver       ProposalStatus = 3
+)
+
 type CreateTermInput struct {
 	Amount  float64 `json:"amount"`
 	Content string  `json:"content"`

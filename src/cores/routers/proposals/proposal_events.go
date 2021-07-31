@@ -49,6 +49,14 @@ func (h *ProposalEventsHandler) CreateProposal() (res interface{}) {
 	return
 }
 
+func (h *ProposalEventsHandler) UpdateProposalOver() (res interface{}) {
+	if err := proposalmodels.Proposals.UpdateProposalOver(h.Ctx); err != nil {
+		h.panicIf(err)
+	}
+	res = apires.With(nil, http.StatusOK)
+	return
+}
+
 func (h *ProposalEventsHandler) UpdateProposalStatus(id flake.ID) (res interface{}) {
 	var input cores.UpdateProposalStatusInput
 	input.Id = id

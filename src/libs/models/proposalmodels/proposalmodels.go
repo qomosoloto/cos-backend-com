@@ -61,6 +61,20 @@ func (c *proposals) CreateProposal(ctx context.Context, input *coresSdk.CreatePr
 	})
 }
 
+func (c *proposals) UpdateProposalOver(ctx context.Context) (err error) {
+	stmt := `
+		UPDATE proposals set status = ${over}
+		WHERE now() > created_at + cast(duration || 'days' as interval) and status = ${voting}
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{
+		"{over}":   coresSdk.ProposalStatusOver,
+		"{voting}": coresSdk.ProposalStatusVoting,
+	})
+	return c.Invoke(ctx, func(db *sqlx.Tx) error {
+		return db.GetContext(ctx, nil, query, args...)
+	})
+}
+
 func (c *proposals) UpdateProposalStatus(ctx context.Context, input *coresSdk.UpdateProposalStatusInput, output *coresSdk.UpdateProposalStatusResult) (err error) {
 	stmt := `
 		UPDATE proposals set status=${status} where id=${id}
@@ -155,7 +169,7 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 					pr.id,
 					pr.tx_id,
 					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
-					json_build_object('id',us.id,'name','') comer,
+					json_build_object('id',COALESCE(ht.user_id, pr.user_id),'name',COALESCE(ht.name, pr.wallet_addr)) comer,
 					pr.wallet_addr,
 					pr.contract_addr,
 					pr.created_at,
@@ -183,7 +197,7 @@ func (c *proposals) GetProposal(ctx context.Context, input *coresSdk.GetProposal
 					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 					INNER JOIN startup_settings ss ON s.id = ss.startup_id
 					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-					INNER JOIN users us ON pr.user_id = us.id
+					LEFT JOIN hunters ht ON pr.user_id = ht.user_id
 					LEFT JOIN votes_cte_group vcg ON vcg.proposal_id = pr.id
 					LEFT JOIN terms_cte_group tcg ON tcg.proposal_id = pr.id
 
@@ -271,7 +285,7 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 	    		SELECT 
 					pr.id,
 					json_build_object('id',s.id,'name',s.name,'logo',sr.logo,'token_symbol',ssr.token_symbol) startup,
-					json_build_object('id',us.id,'name','') comer,
+					json_build_object('id',COALESCE(ht.user_id, pr.user_id),'name',COALESCE(ht.name, pr.wallet_addr)) comer,
 					pr.status,
 					pr.title,
 					pr.duration,
@@ -284,7 +298,7 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 					INNER JOIN startup_settings ss ON s.id = ss.startup_id
 					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-					INNER JOIN users us ON pr.user_id = us.id
+					LEFT JOIN hunters ht ON pr.user_id = ht.user_id
 	    		WHERE ` + filterStmt + `
 					` + orderStmt + `
 				LIMIT ${limit} OFFSET ${offset}
@@ -300,7 +314,7 @@ func (c *proposals) ListProposals(ctx context.Context, userId flake.ID, input *c
 					INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
 					INNER JOIN startup_settings ss ON s.id = ss.startup_id
 					INNER JOIN startup_setting_revisions ssr ON ss.current_revision_id = ssr.id
-					INNER JOIN users us ON pr.user_id = us.id
+					LEFT JOIN hunters ht ON pr.user_id = ht.user_id
 	    		WHERE ` + filterStmt
 
 	query, args := util.PgMapQuery(countStmt, map[string]interface{}{
