@@ -98,6 +98,7 @@ type BountyOutput struct {
 	CreatedAt        time.Time            `json:"createdAt" db:"created_at"`
 	ExpiredAt        time.Time            `json:"expiredAt" db:"expired_at"`
 	BlockAddr        string               `json:"blockAddr" db:"block_addr"`
+	TxId             string               `json:"txId" db:"tx_id"`
 	TransactionState eth.TransactionState `json:"transactionState" db:"transaction_state"`
 }
 

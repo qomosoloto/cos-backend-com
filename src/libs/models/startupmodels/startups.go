@@ -42,6 +42,7 @@ func (c *startups) List(ctx context.Context, input *coresSdk.ListStartupsInput, 
 				sr.mission,
 				sr.description_addr,
 				c AS category,
+				s.created_at,
 				(SELECT count(*) FROM bounties b WHERE s.id = b.startup_id) AS bounty_count,
 				(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count
 			FROM startups s
@@ -238,6 +239,7 @@ func (c *startups) Get(ctx context.Context, id flake.ID, output interface{}) (er
 			c   AS category,
 			ssr AS settings,
 			t1  AS transaction,
+			s.created_at,
 			(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count
 	    FROM startups s
 			INNER JOIN startup_revisions sr ON s.current_revision_id = sr.id
@@ -274,6 +276,7 @@ func (c *startups) GetMe(ctx context.Context, uid, id flake.ID, output interface
 			c   AS category,
 			ssr AS settings,
 			t1  AS transaction,
+			s.created_at,
 			(SELECT count(*) FROM startups_follows_rel sfr WHERE s.id = sfr.startup_id) AS follow_count
 	    FROM startups s
 			LEFT JOIN startup_revisions sr ON s.confirming_revision_id = sr.id
@@ -501,6 +504,24 @@ func (c *startups) IsTokenAddrBinding(ctx context.Context, input *coresSdk.IsTok
 
 	err = c.Invoke(ctx, func(db dbconn.Q) error {
 		return db.GetContext(ctx, output, query, args...)
+	})
+	return
+}
+
+func (c *startups) GetId(ctx context.Context, tokenAddr string) (startupId flake.ID, err error) {
+	tokenWhere := `token_addr = '` + tokenAddr + `'`
+	stmt := `
+		SELECT ss.startup_id
+		FROM startup_setting_revisions ssr
+			LEFT JOIN startup_settings ss ON ss.id = ssr.startup_setting_id
+		WHERE ` + tokenWhere + ` AND ss.confirming_revision_id = ssr.id
+		ORDER BY ssr.created_at
+		LIMIT 1
+	`
+	query, args := util.PgMapQuery(stmt, map[string]interface{}{})
+
+	err = c.Invoke(ctx, func(db dbconn.Q) error {
+		return db.GetContext(ctx, &startupId, query, args...)
 	})
 	return
 }
